@@ -4,7 +4,22 @@ import { Layout } from 'antd';
 // Styles.
 import './App.css';
 
+import data from './report.log';
+
 class App extends React.Component {
+
+  async loadRawData() {
+    let resp = await fetch(data);
+    let ret = await resp.text();
+    ret.split('\n').forEach(line => {
+      if (! line) return;
+      console.log(JSON.parse(line));
+    });
+  }
+
+  componentWillMount() {
+    this.loadRawData();
+  }
 
   render() {
     return (
