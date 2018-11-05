@@ -8,34 +8,6 @@ import './App.css';
 // Raw data
 import data from './report.log';
 
-function getChartData() {
-  return {
-    labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
-    datasets: [
-      {
-        label: 'My First dataset',
-        fillColor: 'rgba(220,220,220,0.2)',
-        strokeColor: 'rgba(220,220,220,1)',
-        pointColor: 'rgba(220,220,220,1)',
-        pointStrokeColor: '#fff',
-        pointHighlightFill: '#fff',
-        pointHighlightStroke: 'rgba(220,220,220,1)',
-        data: [65, 59, 80, 81, 56, 55, 40],
-      },
-      {
-        label: 'My Second dataset',
-        fillColor: 'rgba(151,187,205,0.2)',
-        strokeColor: 'rgba(151,187,205,1)',
-        pointColor: 'rgba(151,187,205,1)',
-        pointStrokeColor: '#fff',
-        pointHighlightFill: '#fff',
-        pointHighlightStroke: 'rgba(151,187,205,1)',
-        data: [28, 48, 40, 19, 86, 27, 90],
-      },
-    ]
-  }
-}
-
 const options = {
   scaleShowGridLines: true,
   scaleGridLineColor: 'rgba(0,0,0,.05)',
@@ -73,9 +45,42 @@ class App extends React.Component {
       this.data.origin.push(JSON.parse(line));
     });
     
-    console.log(this.data.origin);
-    this.data.lineChart = getChartData();
+    var labels = [], prices = [], volumes = [];
+    this.data.origin.filter(e => e.msg === "GatherCryptoQuote").forEach(e => {
+      labels.push(e.time);
+      prices.push(e.quote.USD.price);
+      volumes.push(e.quote.USD.volume_24h);
+    });
+    this.data.lineChart = this.makeLineChartData(labels, prices, volumes);
     this.setState({ ready: true });
+  }
+
+  makeLineChartData(labels, prices, volumes) {
+    return {
+      labels: labels,
+      datasets: [
+        {
+          label: 'Prices',
+          fillColor: 'rgba(220,220,220,0.2)',
+          strokeColor: 'rgba(220,220,220,1)',
+          pointColor: 'rgba(220,220,220,1)',
+          pointStrokeColor: '#fff',
+          pointHighlightFill: '#fff',
+          pointHighlightStroke: 'rgba(220,220,220,1)',
+          data: prices,
+        },
+        {
+          label: 'Volumes',
+          fillColor: 'rgba(151,187,205,0.2)',
+          strokeColor: 'rgba(151,187,205,1)',
+          pointColor: 'rgba(151,187,205,1)',
+          pointStrokeColor: '#fff',
+          pointHighlightFill: '#fff',
+          pointHighlightStroke: 'rgba(151,187,205,1)',
+          data: volumes,
+        },
+      ]
+    };
   }
 
   constructor() {
@@ -97,7 +102,7 @@ class App extends React.Component {
           />
         </Layout.Content>
         <Layout.Footer>
-          <a href={data}>Raw data</a>
+          <h1><a href={data}>Raw data</a></h1>
           <center>coinmarketcap-graph ©2018 Created by hexoul</center>
         </Layout.Footer>
       </Layout>
