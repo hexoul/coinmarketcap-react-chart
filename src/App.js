@@ -9,21 +9,30 @@ import './App.css';
 import data from './report.log';
 
 const options = {
-  scaleShowGridLines: true,
-  scaleGridLineColor: 'rgba(0,0,0,.05)',
-  scaleGridLineWidth: 1,
-  scaleShowHorizontalLines: true,
-  scaleShowVerticalLines: true,
-  bezierCurve: true,
-  bezierCurveTension: 0.4,
-  pointDot: true,
-  pointDotRadius: 4,
-  pointDotStrokeWidth: 1,
-  pointHitDetectionRadius: 20,
-  datasetStroke: true,
-  datasetStrokeWidth: 2,
-  datasetFill: true,
-  legendTemplate: '<ul class="<%=name.toLowerCase()%>-legend"><% for (var i=0; i<datasets.length; i++){%><li><span style="background-color:<%=datasets[i].strokeColor%>"></span><%if(datasets[i].label){%><%=datasets[i].label%><%}%></li><%}%></ul>',
+  responsive: true,
+  hoverMode: 'index',
+  stacked: false,
+  title: {
+    display: true,
+    text: 'BTC/USD Price & Volume'
+  },
+  scales: {
+    yAxes: [{
+      type: 'linear', // only linear but allow scale type registration. This allows extensions to exist solely for log scale for instance
+      display: true,
+      position: 'left',
+      id: 'y-axis-1',
+    }, {
+      type: 'linear', // only linear but allow scale type registration. This allows extensions to exist solely for log scale for instance
+      display: true,
+      position: 'right',
+      id: 'y-axis-2',
+      // grid line settings
+      gridLines: {
+        drawOnChartArea: false, // only want the grid lines for one axis to show up
+      },
+    }],
+  }
 }
 
 class App extends React.Component {
@@ -46,7 +55,7 @@ class App extends React.Component {
     });
     
     var labels = [], prices = [], volumes = [];
-    this.data.origin.filter(e => e.msg === "GatherCryptoQuote").forEach(e => {
+    this.data.origin.filter(e => e.msg === 'GatherCryptoQuote' && e.symbol === 'BTC').forEach(e => {
       labels.push(e.time);
       prices.push(e.quote.USD.price);
       volumes.push(e.quote.USD.volume_24h);
@@ -61,23 +70,19 @@ class App extends React.Component {
       datasets: [
         {
           label: 'Prices',
-          fillColor: 'rgba(220,220,220,0.2)',
-          strokeColor: 'rgba(220,220,220,1)',
-          pointColor: 'rgba(220,220,220,1)',
-          pointStrokeColor: '#fff',
-          pointHighlightFill: '#fff',
-          pointHighlightStroke: 'rgba(220,220,220,1)',
+          borderColor: 'rgba(246,44,44,1)',
+          backgroundColor: 'rgba(246,44,44,1)',
+          fill: false,
           data: prices,
+          yAxisID: 'y-axis-1',
         },
         {
           label: 'Volumes',
-          fillColor: 'rgba(151,187,205,0.2)',
-          strokeColor: 'rgba(151,187,205,1)',
-          pointColor: 'rgba(151,187,205,1)',
-          pointStrokeColor: '#fff',
-          pointHighlightFill: '#fff',
-          pointHighlightStroke: 'rgba(151,187,205,1)',
+          borderColor: 'rgba(151,187,205,1)',
+          backgroundColor: 'rgba(151,187,205,1)',
+          fill: false,
           data: volumes,
+          yAxisID: 'y-axis-2',
         },
       ]
     };
