@@ -1,5 +1,5 @@
 import React from 'react';
-import { Layout } from 'antd';
+import { Layout, Menu, Row, Col } from 'antd';
 import { Line } from 'react-chartjs-2';
 
 // Styles.
@@ -97,18 +97,37 @@ class App extends React.Component {
     return (
       <Layout className='layout'>
         <Layout.Header>
-          Header
+          <Menu
+            theme='dark'
+            mode='horizontal'
+            defaultSelectedKeys={['1']}
+            style={{ lineHeight: '64px' }}
+            // onClick={this.onMenuClick}
+          >
+            <Menu.Item key='1'>Tab 1</Menu.Item>
+            <Menu.Item key='2'>Tab 2</Menu.Item>
+            <Menu.Item key='3'>Tab 3</Menu.Item>
+          </Menu>
         </Layout.Header>
         <Layout.Content style={{ padding: '5vh 5vw 0vh 5vw', backgroundColor: '#fff' }}>
-          <Line
-            data={this.data.lineChart}
-            options={options}
-            width="600" height="250"
-          />
+          <Row>
+            <Col span={11}>
+              <Line
+                data={this.data.lineChart}
+                options={options}
+              />
+            </Col>
+            <Col span={11} offset={1}>
+              <Line
+                data={this.data.lineChart}
+                options={options}
+              />
+            </Col>
+          </Row>
         </Layout.Content>
         <Layout.Footer>
-          <h1><a href={data}>Raw data</a></h1>
-          <center>coinmarketcap-graph ©2018 Created by hexoul</center>
+          <h3><a href={data}>Raw data</a></h3>
+          <center>coinmarketcap-react-chart ©2018 Created by hexoul</center>
         </Layout.Footer>
       </Layout>
     );
