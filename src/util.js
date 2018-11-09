@@ -1,3 +1,15 @@
+import { constants } from './constants';
+
+const getURL = () => {
+  return `https://raw.githubusercontent.com/${constants.organization}/${constants.repoName}/${constants.branch}/${
+    constants.sourceFile
+  }`
+}
+
+const getSource = () => {
+  return fetch(getURL()).then(response => response.text());
+}
+
 const lineChartOptions = (title) => {
     return {
       responsive: true,
@@ -52,6 +64,8 @@ const lineChartOptions = (title) => {
   }
 
   export {
+    getURL,
+    getSource,
     lineChartOptions,
     lineChartWithPriceVolume
   }
