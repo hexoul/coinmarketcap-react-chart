@@ -1,6 +1,9 @@
 import React from 'react';
-import { Layout, Row, Col } from 'antd';
+import { Layout, Table, Row, Col } from 'antd';
 import { Line } from 'react-chartjs-2';
+
+import { columns } from './tableColumns';
+import { lineChartOptions, lineChartWithPriceVolume } from './util';
 
 // Styles.
 import './App.css';
@@ -8,46 +11,19 @@ import './App.css';
 // Raw data
 import data from './report.log';
 
-const options = (title) => {
-  return {
-    responsive: true,
-    hoverMode: 'index',
-    stacked: false,
-    title: {
-      display: true,
-      text: title
-    },
-    scales: {
-      yAxes: [{
-        type: 'linear', // only linear but allow scale type registration. This allows extensions to exist solely for log scale for instance
-        display: true,
-        position: 'left',
-        id: 'y-axis-1',
-      }, {
-        type: 'linear', // only linear but allow scale type registration. This allows extensions to exist solely for log scale for instance
-        display: true,
-        position: 'right',
-        id: 'y-axis-2',
-        // grid line settings
-        gridLines: {
-          drawOnChartArea: false, // only want the grid lines for one axis to show up
-        },
-      }],
-    }
-  }
-}
-
 class App extends React.Component {
   
   data = {
     targetSymbol: 'META',
     targetQuotes: ['USD', 'BTC', 'ETH'],
+    targetMarkets: ['coinsuper', 'kucoin'],
     origin: [],
     lineChart: {},
   };
 
   state = {
     ready: false,
+    marketData: [],
   }
 
   async loadRawData() {
@@ -57,7 +33,8 @@ class App extends React.Component {
       if (! line) return;
       this.data.origin.push(JSON.parse(line));
     });
-    
+   
+    // For charts
     var labels = {}, prices = {}, volumes = {};
     this.data.targetQuotes.forEach(v => { labels[v] = []; prices[v] = []; volumes[v] = [] });
     this.data.origin.filter(e => e.msg === 'GatherCryptoQuote' && e.symbol === this.data.targetSymbol).forEach(e => {
@@ -67,32 +44,29 @@ class App extends React.Component {
         volumes[v].push(e.quote[v].volume_24h);
       });
     });
-    this.data.targetQuotes.forEach(v => { this.data.lineChart[v] = this.makeLineChartWithPriceVolume(labels[v], prices[v], volumes[v]); });
-    this.setState({ ready: true });
-  }
+    var cmcData = { 'category': 'CMC' };
+    this.data.targetQuotes.forEach(v => {
+      this.data.lineChart[v] = lineChartWithPriceVolume(labels[v], prices[v], volumes[v]);
+      cmcData[v + ':price'] = prices[v][prices[v].length -1];
+      cmcData[v + ':volume'] = volumes[v][volumes[v].length -1];
+    });
+    this.state.marketData.push(cmcData);
 
-  makeLineChartWithPriceVolume(labels, prices, volumes) {
-    return {
-      labels: labels,
-      datasets: [
-        {
-          label: 'Prices',
-          borderColor: 'rgba(246,44,44,1)',
-          backgroundColor: 'rgba(246,44,44,1)',
-          fill: false,
-          data: prices,
-          yAxisID: 'y-axis-1',
-        },
-        {
-          label: 'Volumes',
-          borderColor: 'rgba(151,187,205,1)',
-          backgroundColor: 'rgba(151,187,205,1)',
-          fill: false,
-          data: volumes,
-          yAxisID: 'y-axis-2',
-        },
-      ]
-    };
+    // For market data
+    this.data.targetMarkets.forEach(market => {
+      let data = this.data.origin
+        .filter(e => e.msg === 'GatherExchangeMarketPairs' && e.symbol === this.data.targetSymbol && e.market === market)
+        .pop().quote;
+
+      let nItem = { 'category': market };
+      this.data.targetQuotes.forEach(quote => {
+        nItem[quote + ':price'] = data[quote].price;
+        nItem[quote + ':volume'] = data[quote].volume_24h;
+      });
+      this.state.marketData.push(nItem);
+    });
+
+    this.setState({ ready: true });
   }
 
   constructor() {
@@ -107,20 +81,51 @@ class App extends React.Component {
           Header
         </Layout.Header>
         <Layout.Content style={{ padding: '5vh 5vw 0vh 5vw', backgroundColor: '#fff' }}>
-          <Row>
-            <Col span={11}>
-              <Line
-                data={this.data.lineChart[this.data.targetQuotes[0]]}
-                options={options(this.data.targetSymbol + '/' + this.data.targetQuotes[0] + ' Price & Volume')}
-              />
-            </Col>
-            <Col span={11} offset={1}>
-              <Line
-                data={this.data.lineChart[this.data.targetQuotes[1]]}
-                options={options(this.data.targetSymbol + '/' + this.data.targetQuotes[1] + ' Price & Volume')}
-              />
-            </Col>
-          </Row>
+          <h3>Token Metric</h3>
+          {this.state.ready &&
+            <Row>
+              <Col span={10}>
+                <Table
+                  size='small'
+                  pagination={false}
+                  rowKey={record => record.symbol}
+                  columns={columns.TokenMetric}
+                  dataSource={[this.data.origin.filter(e => e.msg === 'GatherTokenMetric' && e.symbol === this.data.targetSymbol).pop()]}
+                />
+              </Col>
+            </Row>
+          }
+          <br /><h3>Market Data</h3>
+          {this.state.ready &&
+            <Row>
+              <Col span={20}>
+                <Table
+                  size='small'
+                  pagination={false}
+                  rowKey={record => record.category}
+                  columns={columns.MarketData}
+                  dataSource={this.state.marketData}
+                />
+              </Col>
+            </Row>
+          }
+          <br /><h3>Chart</h3>
+          {this.state.ready &&
+            <Row>
+              <Col span={11}>
+                <Line
+                  data={this.data.lineChart[this.data.targetQuotes[0]]}
+                  options={lineChartOptions(this.data.targetSymbol + '/' + this.data.targetQuotes[0] + ' Price & Volume')}
+                />
+              </Col>
+              <Col span={11} offset={1}>
+                <Line
+                  data={this.data.lineChart[this.data.targetQuotes[1]]}
+                  options={lineChartOptions(this.data.targetSymbol + '/' + this.data.targetQuotes[1] + ' Price & Volume')}
+                />
+              </Col>
+            </Row>
+          }
         </Layout.Content>
         <Layout.Footer>
           <h3><a href={data}>Raw data</a></h3>
