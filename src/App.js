@@ -1,5 +1,5 @@
 import React from 'react';
-import { Layout, Menu, Row, Col } from 'antd';
+import { Layout, Row, Col } from 'antd';
 import { Line } from 'react-chartjs-2';
 
 // Styles.
@@ -8,36 +8,40 @@ import './App.css';
 // Raw data
 import data from './report.log';
 
-const options = {
-  responsive: true,
-  hoverMode: 'index',
-  stacked: false,
-  title: {
-    display: true,
-    text: 'BTC/USD Price & Volume'
-  },
-  scales: {
-    yAxes: [{
-      type: 'linear', // only linear but allow scale type registration. This allows extensions to exist solely for log scale for instance
+const options = (title) => {
+  return {
+    responsive: true,
+    hoverMode: 'index',
+    stacked: false,
+    title: {
       display: true,
-      position: 'left',
-      id: 'y-axis-1',
-    }, {
-      type: 'linear', // only linear but allow scale type registration. This allows extensions to exist solely for log scale for instance
-      display: true,
-      position: 'right',
-      id: 'y-axis-2',
-      // grid line settings
-      gridLines: {
-        drawOnChartArea: false, // only want the grid lines for one axis to show up
-      },
-    }],
+      text: title
+    },
+    scales: {
+      yAxes: [{
+        type: 'linear', // only linear but allow scale type registration. This allows extensions to exist solely for log scale for instance
+        display: true,
+        position: 'left',
+        id: 'y-axis-1',
+      }, {
+        type: 'linear', // only linear but allow scale type registration. This allows extensions to exist solely for log scale for instance
+        display: true,
+        position: 'right',
+        id: 'y-axis-2',
+        // grid line settings
+        gridLines: {
+          drawOnChartArea: false, // only want the grid lines for one axis to show up
+        },
+      }],
+    }
   }
 }
 
 class App extends React.Component {
   
   data = {
+    targetSymbol: 'META',
+    targetQuotes: ['USD', 'BTC', 'ETH'],
     origin: [],
     lineChart: {},
   };
@@ -54,17 +58,20 @@ class App extends React.Component {
       this.data.origin.push(JSON.parse(line));
     });
     
-    var labels = [], prices = [], volumes = [];
-    this.data.origin.filter(e => e.msg === 'GatherCryptoQuote' && e.symbol === 'BTC').forEach(e => {
-      labels.push(e.time);
-      prices.push(e.quote.USD.price);
-      volumes.push(e.quote.USD.volume_24h);
+    var labels = {}, prices = {}, volumes = {};
+    this.data.targetQuotes.forEach(v => { labels[v] = []; prices[v] = []; volumes[v] = [] });
+    this.data.origin.filter(e => e.msg === 'GatherCryptoQuote' && e.symbol === this.data.targetSymbol).forEach(e => {
+      this.data.targetQuotes.forEach(v => {
+        labels[v].push(e.time);
+        prices[v].push(e.quote[v].price);
+        volumes[v].push(e.quote[v].volume_24h);
+      });
     });
-    this.data.lineChart = this.makeLineChartData(labels, prices, volumes);
+    this.data.targetQuotes.forEach(v => { this.data.lineChart[v] = this.makeLineChartWithPriceVolume(labels[v], prices[v], volumes[v]); });
     this.setState({ ready: true });
   }
 
-  makeLineChartData(labels, prices, volumes) {
+  makeLineChartWithPriceVolume(labels, prices, volumes) {
     return {
       labels: labels,
       datasets: [
@@ -97,30 +104,20 @@ class App extends React.Component {
     return (
       <Layout className='layout'>
         <Layout.Header>
-          <Menu
-            theme='dark'
-            mode='horizontal'
-            defaultSelectedKeys={['1']}
-            style={{ lineHeight: '64px' }}
-            // onClick={this.onMenuClick}
-          >
-            <Menu.Item key='1'>Tab 1</Menu.Item>
-            <Menu.Item key='2'>Tab 2</Menu.Item>
-            <Menu.Item key='3'>Tab 3</Menu.Item>
-          </Menu>
+          Header
         </Layout.Header>
         <Layout.Content style={{ padding: '5vh 5vw 0vh 5vw', backgroundColor: '#fff' }}>
           <Row>
             <Col span={11}>
               <Line
-                data={this.data.lineChart}
-                options={options}
+                data={this.data.lineChart[this.data.targetQuotes[0]]}
+                options={options(this.data.targetSymbol + '/' + this.data.targetQuotes[0] + ' Price & Volume')}
               />
             </Col>
             <Col span={11} offset={1}>
               <Line
-                data={this.data.lineChart}
-                options={options}
+                data={this.data.lineChart[this.data.targetQuotes[1]]}
+                options={options(this.data.targetSymbol + '/' + this.data.targetQuotes[1] + ' Price & Volume')}
               />
             </Col>
           </Row>
