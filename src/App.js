@@ -8,6 +8,8 @@ import { getURL, getSource, lineChartOptions, lineChartWithPriceVolume } from '.
 // Styles.
 import './App.css';
 
+var rawDataUpdatePeriod = 5 * 60 * 1000; // 5 min
+
 class App extends React.Component {
   
   data = {
@@ -24,6 +26,7 @@ class App extends React.Component {
   }
 
   async loadRawData() {
+    this.data.origin = [];
     let ret = await getSource();
     ret.split('\n').forEach(line => {
       if (! line) return;
@@ -69,6 +72,9 @@ class App extends React.Component {
   constructor() {
     super();
     this.loadRawData();
+    this.interval = setInterval(() => {
+      this.loadRawData();
+    }, rawDataUpdatePeriod);
   }
 
   render() {
