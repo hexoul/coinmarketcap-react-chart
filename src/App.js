@@ -155,11 +155,14 @@ class App extends React.Component {
               <DatePicker format='YYYY/MM/DD' onChange={(d, ds) => this.onSearchByTime(constants.key.marketData, true, ds)} />
               {' '}<TimePicker format='HH:mm:ss' onChange={(t, ts) => this.onSearchByTime(constants.key.marketData, false, ts)} />
               {this.state.ready &&
-                <CSVLink
-                  filename='market-data.csv'
-                  headers={csvHeaders.marketData}
-                  data={this.data.csvMarketData['CMC']}
-                > Download</CSVLink>
+                Object.keys(this.data.csvMarketData).map(market => {
+                  return <CSVLink
+                    key={market}
+                    filename={'market-data-' + market + '.csv'}
+                    headers={csvHeaders.marketData}
+                    data={this.data.csvMarketData[market]}
+                  > {market} </CSVLink>
+                })
               }
             </Col>
           </Row>
