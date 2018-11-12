@@ -8,7 +8,10 @@ import { getURL, getSource, lineChartOptions, lineChartWithPriceVolume } from '.
 // Styles.
 import './App.css';
 
-var rawDataUpdatePeriod = 5 * 60 * 1000; // 5 min
+const rawDataUpdatePeriod = 5 * 60 * 1000; // 5 min
+const KEY_TOKEN_METRIC = 'metric';
+const KEY_MARKET_DATA = 'market';
+
 
 class App extends React.Component {
   
@@ -18,15 +21,20 @@ class App extends React.Component {
     targetMarkets: ['coinsuper', 'kucoin'],
     origin: [],
     lineChart: {},
+    searchDate: {},
+    searchTime: {},
   };
 
   state = {
     ready: false,
+    tokenMetric: [],
     marketData: [],
   }
 
   async loadRawData() {
     this.data.origin = [];
+    this.data.lineChart = {};
+    
     let ret = await getSource();
     ret.split('\n').forEach(line => {
       if (! line) return;
@@ -50,23 +58,32 @@ class App extends React.Component {
       cmcData[v + ':price'] = prices[v][prices[v].length -1];
       cmcData[v + ':volume'] = volumes[v][volumes[v].length -1];
     });
-    this.state.marketData.push(cmcData);
-
+    
     // For market data
+    var marketData = [];
+    marketData.push(cmcData);
     this.data.targetMarkets.forEach(market => {
       let data = this.data.origin
-        .filter(e => e.msg === 'GatherExchangeMarketPairs' && e.symbol === this.data.targetSymbol && e.market === market)
-        .pop().quote;
+        .filter(e => e.msg === 'GatherExchangeMarketPairs'
+                && e.symbol === this.data.targetSymbol
+                && e.market === market);
+
+      if (! data) return;
+      data = data.pop().quote;
 
       let nItem = { 'category': market };
       this.data.targetQuotes.forEach(quote => {
         nItem[quote + ':price'] = data[quote].price;
         nItem[quote + ':volume'] = data[quote].volume_24h;
       });
-      this.state.marketData.push(nItem);
+      marketData.push(nItem);
     });
 
-    this.setState({ ready: true });
+    // For token metric
+    var tokenMetric = this.data.origin.filter(e => e.msg === 'GatherTokenMetric' && e.symbol === this.data.targetSymbol);
+    if (tokenMetric.length > 0) tokenMetric = [tokenMetric.pop()];
+
+    this.setState({ ready: true, marketData: marketData, tokenMetric: tokenMetric });
   }
 
   constructor() {
@@ -75,6 +92,58 @@ class App extends React.Component {
     this.interval = setInterval(() => {
       this.loadRawData();
     }, rawDataUpdatePeriod);
+  }
+
+  onSearchByTime = (target, isDate, dateStr) => {
+    if (isDate) this.data.searchDate[target] = dateStr;
+    else this.data.searchTime[target] = dateStr;
+
+    if (! this.data.searchDate[target] || ! this.data.searchTime[target]) return;
+
+    let searchTime = Date.parse(this.data.searchDate[target] + ' ' + this.data.searchTime[target]);
+    switch (target) {
+      case KEY_TOKEN_METRIC:
+        var tokenMetric = this.data.origin.filter(e => e.msg === 'GatherTokenMetric' && Date.parse(e.time) <= searchTime);
+        if (tokenMetric.length > 0) tokenMetric = [tokenMetric.pop()];
+        this.setState({ tokenMetric: tokenMetric });
+        break;
+      case KEY_MARKET_DATA:
+        var marketData = [];
+        var cmcData = { 'category': 'CMC' };
+        var cmcOrigin = this.data.origin.filter(e => e.msg === 'GatherCryptoQuote'
+                                                && e.symbol === this.data.targetSymbol
+                                                && Date.parse(e.time) <= searchTime);
+        if (! cmcOrigin || cmcOrigin.length === 0) {
+          this.setState({ marketData: marketData });
+          return;
+        }
+        cmcOrigin = cmcOrigin.pop();
+        
+        this.data.targetQuotes.forEach(v => {
+          cmcData[v + ':price'] = cmcOrigin.quote[v].price;
+          cmcData[v + ':volume'] = cmcOrigin.quote[v].volume_24h;
+        });
+        marketData.push(cmcData);
+        this.data.targetMarkets.forEach(market => {
+          let data = this.data.origin
+            .filter(e => e.msg === 'GatherExchangeMarketPairs'
+                    && e.symbol === this.data.targetSymbol
+                    && e.market === market
+                    && Date.parse(e.time) <= searchTime);
+          if (! data || data.length === 0) return;
+          data = data.pop().quote;
+    
+          let nItem = { 'category': market };
+          this.data.targetQuotes.forEach(quote => {
+            nItem[quote + ':price'] = data[quote].price;
+            nItem[quote + ':volume'] = data[quote].volume_24h;
+          });
+          marketData.push(nItem);
+          this.setState({ marketData: marketData });
+        });
+        break;
+      default: break;
+    }
   }
 
   render() {
@@ -86,7 +155,10 @@ class App extends React.Component {
         <Layout.Content style={{ padding: '5vh 5vw 0vh 5vw', backgroundColor: '#fff' }}>
           <Row>
             <Col span={4}><h3>Token Metric</h3></Col>
-            <Col span={20}><DatePicker format='YYYY/MM/DD' onChange={() => {}}/> <TimePicker format='HH:mm:ss' /></Col>
+            <Col span={20}>
+              <DatePicker format='YYYY/MM/DD' onChange={(d, ds) => this.onSearchByTime(KEY_TOKEN_METRIC, true, ds)} />
+              <TimePicker format='HH:mm:ss' onChange={(t, ts) => this.onSearchByTime(KEY_TOKEN_METRIC, false, ts)} />
+            </Col>
           </Row>
           <br />
           {this.state.ready &&
@@ -97,7 +169,7 @@ class App extends React.Component {
                   pagination={false}
                   rowKey={record => record.symbol}
                   columns={columns.TokenMetric}
-                  dataSource={[this.data.origin.filter(e => e.msg === 'GatherTokenMetric' && e.symbol === this.data.targetSymbol).pop()]}
+                  dataSource={this.state.tokenMetric}
                 />
               </Col>
             </Row>
@@ -105,7 +177,10 @@ class App extends React.Component {
           <br />
           <Row>
             <Col span={4}><h3>Market Data</h3></Col>
-            <Col span={20}><DatePicker format='YYYY/MM/DD' onChange={() => {}}/> <TimePicker format='HH:mm:ss' /></Col>
+            <Col span={20}>
+              <DatePicker format='YYYY/MM/DD' onChange={(d, ds) => this.onSearchByTime(KEY_MARKET_DATA, true, ds)} />
+              <TimePicker format='HH:mm:ss' onChange={(t, ts) => this.onSearchByTime(KEY_MARKET_DATA, false, ts)} />
+            </Col>
           </Row>
           <br />
           {this.state.ready &&
@@ -132,8 +207,8 @@ class App extends React.Component {
               </Col>
               <Col span={11} offset={1}>
                 <Line
-                  data={this.data.lineChart[this.data.targetQuotes[1]]}
-                  options={lineChartOptions(this.data.targetSymbol + '/' + this.data.targetQuotes[1] + ' Price & Volume')}
+                  data={this.data.lineChart[this.data.targetQuotes[2]]}
+                  options={lineChartOptions(this.data.targetSymbol + '/' + this.data.targetQuotes[2] + ' Price & Volume')}
                 />
               </Col>
             </Row>
