@@ -36,26 +36,26 @@ columns.MarketData = [
   },
   {
     title: 'USD Price',
-    dataIndex: 'USD:price',
-    key: 'USD:price',
+    dataIndex: 'usdPrice',
+    key: 'usdPrice',
     width: '20%',
   },
   {
     title: 'ETH Price',
-    dataIndex: 'ETH:price',
-    key: 'ETH:price',
+    dataIndex: 'ethPrice',
+    key: 'ethPrice',
     width: '20%',
   },
   {
     title: 'BTC Price',
-    dataIndex: 'BTC:price',
-    key: 'BTC:price',
+    dataIndex: 'btcPrice',
+    key: 'btcPrice',
     width: '20%',
   },
   {
     title: 'Volume(USD)',
-    dataIndex: 'USD:volume',
-    key: 'USD:volume',
+    dataIndex: 'usdVolume',
+    key: 'usdVolume',
     width: '30%',
   }
 ];

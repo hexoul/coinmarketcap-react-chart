@@ -1,10 +1,10 @@
 import React from 'react';
 import { Layout, Table, Row, Col, DatePicker, TimePicker } from 'antd';
 import { Line } from 'react-chartjs-2';
+import { CSVLink } from 'react-csv';
 
-import { constants } from './constants';
-import { columns } from './tableColumns';
-import { getURL, getSource, lineChartOptions, lineChartWithPriceVolume } from './util';
+import { constants, columns, csvHeaders } from './constants';
+import { getURL, getSource, lineChartOptions, lineChartWithPriceVolume, getMarketDataCSV } from './util';
 
 // Styles.
 import './App.css';
@@ -14,6 +14,7 @@ class App extends React.Component {
   data = {
     origin: [],
     lineChart: {},
+    csvMarketData: {},
     searchDate: {},
     searchTime: {},
   };
@@ -22,7 +23,7 @@ class App extends React.Component {
     ready: false,
     tokenMetric: [],
     marketData: [],
-  }
+  };
 
   async loadRawData() {
     this.data.origin = [];
@@ -52,27 +53,23 @@ class App extends React.Component {
       cmcData[v + ':volume'] = volumes[v][volumes[v].length -1];
     });
     
-    // For market data
-    var marketData = [];
-    marketData.push(cmcData);
+    // For CSV
+    this.data.csvMarketData['CMC'] = this.data.origin.filter(e => e.msg === constants.gather.cryptoQuote && e.symbol === constants.target.symbol).map(e => getMarketDataCSV('CMC', e));
     constants.target.markets.forEach(market => {
-      let data = this.data.origin
+      this.data.csvMarketData[market] = this.data.origin
         .filter(e => e.msg === constants.gather.marketPairs
                 && e.symbol === constants.target.symbol
-                && e.market === market);
-
-      if (! data || data.length === 0) return;
-      data = data.pop().quote;
-
-      let nItem = { 'category': market };
-      constants.target.quotes.forEach(quote => {
-        nItem[quote + ':price'] = data[quote].price;
-        nItem[quote + ':volume'] = data[quote].volume_24h;
-      });
-      marketData.push(nItem);
+                && e.market === market)
+        .map(e => getMarketDataCSV(market, e));
     });
 
-    // For token metric
+    // For market data table
+    var marketData = [];
+    Object.values(this.data.csvMarketData).forEach(e => {
+      if (e.length > 0) marketData.push(e[e.length-1]);
+    });
+
+    // For token metric table
     var tokenMetric = this.data.origin.filter(e => e.msg === constants.gather.tokenMetric && e.symbol === constants.target.symbol);
     if (tokenMetric.length > 0) tokenMetric = [tokenMetric.pop()];
 
@@ -88,30 +85,35 @@ class App extends React.Component {
   }
 
   onSearchByTime = (target, isDate, dateStr) => {
+    // Set date and time to search
     if (isDate) this.data.searchDate[target] = dateStr;
     else this.data.searchTime[target] = dateStr;
 
     if (! this.data.searchDate[target] || ! this.data.searchTime[target]) return;
 
+    // Search by given time
     let searchTime = Date.parse(this.data.searchDate[target] + ' ' + this.data.searchTime[target]);
     switch (target) {
+      // Filter and pick last one that is closest data point
       case constants.key.tokenMetric:
         var tokenMetric = this.data.origin.filter(e => e.msg === constants.gather.tokenMetric && Date.parse(e.time) <= searchTime);
         if (tokenMetric.length > 0) tokenMetric = [tokenMetric.pop()];
         this.setState({ tokenMetric: tokenMetric });
         break;
       case constants.key.marketData:
+        // Market data is composed of both CMC and market 
         var marketData = [];
         var cmcData = { 'category': 'CMC' };
         var cmcOrigin = this.data.origin.filter(e => e.msg === constants.gather.cryptoQuote
                                                 && e.symbol === constants.target.symbol
                                                 && Date.parse(e.time) <= searchTime);
         if (! cmcOrigin || cmcOrigin.length === 0) {
+          // No data
           this.setState({ marketData: marketData });
           return;
         }
         cmcOrigin = cmcOrigin.pop();
-        
+
         constants.target.quotes.forEach(v => {
           cmcData[v + ':price'] = cmcOrigin.quote[v].price;
           cmcData[v + ':volume'] = cmcOrigin.quote[v].volume_24h;
@@ -123,6 +125,7 @@ class App extends React.Component {
                     && e.symbol === constants.target.symbol
                     && e.market === market
                     && Date.parse(e.time) <= searchTime);
+          // No data
           if (! data || data.length === 0) return;
           data = data.pop().quote;
     
@@ -148,9 +151,16 @@ class App extends React.Component {
         <Layout.Content style={{ padding: '5vh 5vw 0vh 5vw', backgroundColor: '#fff' }}>
           <Row>
             <Col span={4}><h3>Token Metric</h3></Col>
-            <Col span={20}>
+            <Col span={18}>
               <DatePicker format='YYYY/MM/DD' onChange={(d, ds) => this.onSearchByTime(constants.key.tokenMetric, true, ds)} />
-              <TimePicker format='HH:mm:ss' onChange={(t, ts) => this.onSearchByTime(constants.key.tokenMetric, false, ts)} />
+              {' '}<TimePicker format='HH:mm:ss' onChange={(t, ts) => this.onSearchByTime(constants.key.tokenMetric, false, ts)} />
+              {this.state.ready &&
+                <CSVLink
+                  filename='token-metric.csv'
+                  headers={csvHeaders.tokenMetric}
+                  data={this.data.origin.filter(e => e.msg === constants.gather.tokenMetric && e.symbol === constants.target.symbol)}
+                > Download</CSVLink>
+              }
             </Col>
           </Row>
           <br />
@@ -172,7 +182,14 @@ class App extends React.Component {
             <Col span={4}><h3>Market Data</h3></Col>
             <Col span={20}>
               <DatePicker format='YYYY/MM/DD' onChange={(d, ds) => this.onSearchByTime(constants.key.marketData, true, ds)} />
-              <TimePicker format='HH:mm:ss' onChange={(t, ts) => this.onSearchByTime(constants.key.marketData, false, ts)} />
+              {' '}<TimePicker format='HH:mm:ss' onChange={(t, ts) => this.onSearchByTime(constants.key.marketData, false, ts)} />
+              {this.state.ready &&
+                <CSVLink
+                  filename='market-data.csv'
+                  headers={csvHeaders.marketData}
+                  data={this.data.csvMarketData['CMC']}
+                > Download</CSVLink>
+              }
             </Col>
           </Row>
           <br />

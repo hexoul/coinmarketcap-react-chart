@@ -1,4 +1,4 @@
-import { constants } from './constants';
+import { constants } from '../constants';
 
 const getURL = () => {
   return `https://raw.githubusercontent.com/${constants.organization}/${constants.repoName}/${constants.branch}/${
@@ -63,9 +63,21 @@ const lineChartOptions = (title) => {
     };
   }
 
+  const getMarketDataCSV = (market, e) => {
+    return {
+      category: market,
+      usdPrice: e.quote.USD.price,
+      usdVolume: e.quote.USD.volume_24h,
+      ethPrice: e.quote.ETH.price,
+      btcPrice: e.quote.BTC.price,
+      time: e.time,
+    }
+  }
+
   export {
     getURL,
     getSource,
     lineChartOptions,
-    lineChartWithPriceVolume
+    lineChartWithPriceVolume,
+    getMarketDataCSV,
   }
