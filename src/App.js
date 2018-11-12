@@ -2,23 +2,16 @@ import React from 'react';
 import { Layout, Table, Row, Col, DatePicker, TimePicker } from 'antd';
 import { Line } from 'react-chartjs-2';
 
+import { constants } from './constants';
 import { columns } from './tableColumns';
 import { getURL, getSource, lineChartOptions, lineChartWithPriceVolume } from './util';
 
 // Styles.
 import './App.css';
 
-const rawDataUpdatePeriod = 5 * 60 * 1000; // 5 min
-const KEY_TOKEN_METRIC = 'metric';
-const KEY_MARKET_DATA = 'market';
-
-
 class App extends React.Component {
   
   data = {
-    targetSymbol: 'META',
-    targetQuotes: ['USD', 'BTC', 'ETH'],
-    targetMarkets: ['coinsuper', 'kucoin'],
     origin: [],
     lineChart: {},
     searchDate: {},
@@ -44,16 +37,16 @@ class App extends React.Component {
    
     // For charts
     var labels = {}, prices = {}, volumes = {};
-    this.data.targetQuotes.forEach(v => { labels[v] = []; prices[v] = []; volumes[v] = [] });
-    this.data.origin.filter(e => e.msg === 'GatherCryptoQuote' && e.symbol === this.data.targetSymbol).forEach(e => {
-      this.data.targetQuotes.forEach(v => {
+    constants.target.quotes.forEach(v => { labels[v] = []; prices[v] = []; volumes[v] = [] });
+    this.data.origin.filter(e => e.msg === constants.gather.cryptoQuote && e.symbol === constants.target.symbol).forEach(e => {
+      constants.target.quotes.forEach(v => {
         labels[v].push(e.time);
         prices[v].push(e.quote[v].price);
         volumes[v].push(e.quote[v].volume_24h);
       });
     });
     var cmcData = { 'category': 'CMC' };
-    this.data.targetQuotes.forEach(v => {
+    constants.target.quotes.forEach(v => {
       this.data.lineChart[v] = lineChartWithPriceVolume(labels[v], prices[v], volumes[v]);
       cmcData[v + ':price'] = prices[v][prices[v].length -1];
       cmcData[v + ':volume'] = volumes[v][volumes[v].length -1];
@@ -62,17 +55,17 @@ class App extends React.Component {
     // For market data
     var marketData = [];
     marketData.push(cmcData);
-    this.data.targetMarkets.forEach(market => {
+    constants.target.markets.forEach(market => {
       let data = this.data.origin
-        .filter(e => e.msg === 'GatherExchangeMarketPairs'
-                && e.symbol === this.data.targetSymbol
+        .filter(e => e.msg === constants.gather.marketPairs
+                && e.symbol === constants.target.symbol
                 && e.market === market);
 
-      if (! data) return;
+      if (! data || data.length === 0) return;
       data = data.pop().quote;
 
       let nItem = { 'category': market };
-      this.data.targetQuotes.forEach(quote => {
+      constants.target.quotes.forEach(quote => {
         nItem[quote + ':price'] = data[quote].price;
         nItem[quote + ':volume'] = data[quote].volume_24h;
       });
@@ -80,7 +73,7 @@ class App extends React.Component {
     });
 
     // For token metric
-    var tokenMetric = this.data.origin.filter(e => e.msg === 'GatherTokenMetric' && e.symbol === this.data.targetSymbol);
+    var tokenMetric = this.data.origin.filter(e => e.msg === constants.gather.tokenMetric && e.symbol === constants.target.symbol);
     if (tokenMetric.length > 0) tokenMetric = [tokenMetric.pop()];
 
     this.setState({ ready: true, marketData: marketData, tokenMetric: tokenMetric });
@@ -91,7 +84,7 @@ class App extends React.Component {
     this.loadRawData();
     this.interval = setInterval(() => {
       this.loadRawData();
-    }, rawDataUpdatePeriod);
+    }, constants.dataUpdatePeriod);
   }
 
   onSearchByTime = (target, isDate, dateStr) => {
@@ -102,16 +95,16 @@ class App extends React.Component {
 
     let searchTime = Date.parse(this.data.searchDate[target] + ' ' + this.data.searchTime[target]);
     switch (target) {
-      case KEY_TOKEN_METRIC:
-        var tokenMetric = this.data.origin.filter(e => e.msg === 'GatherTokenMetric' && Date.parse(e.time) <= searchTime);
+      case constants.key.tokenMetric:
+        var tokenMetric = this.data.origin.filter(e => e.msg === constants.gather.tokenMetric && Date.parse(e.time) <= searchTime);
         if (tokenMetric.length > 0) tokenMetric = [tokenMetric.pop()];
         this.setState({ tokenMetric: tokenMetric });
         break;
-      case KEY_MARKET_DATA:
+      case constants.key.marketData:
         var marketData = [];
         var cmcData = { 'category': 'CMC' };
-        var cmcOrigin = this.data.origin.filter(e => e.msg === 'GatherCryptoQuote'
-                                                && e.symbol === this.data.targetSymbol
+        var cmcOrigin = this.data.origin.filter(e => e.msg === constants.gather.cryptoQuote
+                                                && e.symbol === constants.target.symbol
                                                 && Date.parse(e.time) <= searchTime);
         if (! cmcOrigin || cmcOrigin.length === 0) {
           this.setState({ marketData: marketData });
@@ -119,22 +112,22 @@ class App extends React.Component {
         }
         cmcOrigin = cmcOrigin.pop();
         
-        this.data.targetQuotes.forEach(v => {
+        constants.target.quotes.forEach(v => {
           cmcData[v + ':price'] = cmcOrigin.quote[v].price;
           cmcData[v + ':volume'] = cmcOrigin.quote[v].volume_24h;
         });
         marketData.push(cmcData);
-        this.data.targetMarkets.forEach(market => {
+        constants.target.markets.forEach(market => {
           let data = this.data.origin
-            .filter(e => e.msg === 'GatherExchangeMarketPairs'
-                    && e.symbol === this.data.targetSymbol
+            .filter(e => e.msg === constants.gather.marketPairs
+                    && e.symbol === constants.target.symbol
                     && e.market === market
                     && Date.parse(e.time) <= searchTime);
           if (! data || data.length === 0) return;
           data = data.pop().quote;
     
           let nItem = { 'category': market };
-          this.data.targetQuotes.forEach(quote => {
+          constants.target.quotes.forEach(quote => {
             nItem[quote + ':price'] = data[quote].price;
             nItem[quote + ':volume'] = data[quote].volume_24h;
           });
@@ -156,8 +149,8 @@ class App extends React.Component {
           <Row>
             <Col span={4}><h3>Token Metric</h3></Col>
             <Col span={20}>
-              <DatePicker format='YYYY/MM/DD' onChange={(d, ds) => this.onSearchByTime(KEY_TOKEN_METRIC, true, ds)} />
-              <TimePicker format='HH:mm:ss' onChange={(t, ts) => this.onSearchByTime(KEY_TOKEN_METRIC, false, ts)} />
+              <DatePicker format='YYYY/MM/DD' onChange={(d, ds) => this.onSearchByTime(constants.key.tokenMetric, true, ds)} />
+              <TimePicker format='HH:mm:ss' onChange={(t, ts) => this.onSearchByTime(constants.key.tokenMetric, false, ts)} />
             </Col>
           </Row>
           <br />
@@ -178,8 +171,8 @@ class App extends React.Component {
           <Row>
             <Col span={4}><h3>Market Data</h3></Col>
             <Col span={20}>
-              <DatePicker format='YYYY/MM/DD' onChange={(d, ds) => this.onSearchByTime(KEY_MARKET_DATA, true, ds)} />
-              <TimePicker format='HH:mm:ss' onChange={(t, ts) => this.onSearchByTime(KEY_MARKET_DATA, false, ts)} />
+              <DatePicker format='YYYY/MM/DD' onChange={(d, ds) => this.onSearchByTime(constants.key.marketData, true, ds)} />
+              <TimePicker format='HH:mm:ss' onChange={(t, ts) => this.onSearchByTime(constants.key.marketData, false, ts)} />
             </Col>
           </Row>
           <br />
@@ -201,14 +194,14 @@ class App extends React.Component {
             <Row>
               <Col span={11}>
                 <Line
-                  data={this.data.lineChart[this.data.targetQuotes[0]]}
-                  options={lineChartOptions(this.data.targetSymbol + '/' + this.data.targetQuotes[0] + ' Price & Volume')}
+                  data={this.data.lineChart[constants.target.quotes[0]]}
+                  options={lineChartOptions(constants.target.symbol + '/' + constants.target.quotes[0] + ' Price & Volume')}
                 />
               </Col>
               <Col span={11} offset={1}>
                 <Line
-                  data={this.data.lineChart[this.data.targetQuotes[2]]}
-                  options={lineChartOptions(this.data.targetSymbol + '/' + this.data.targetQuotes[2] + ' Price & Volume')}
+                  data={this.data.lineChart[constants.target.quotes[2]]}
+                  options={lineChartOptions(constants.target.symbol + '/' + constants.target.quotes[2] + ' Price & Volume')}
                 />
               </Col>
             </Row>
