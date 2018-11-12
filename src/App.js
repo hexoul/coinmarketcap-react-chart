@@ -101,42 +101,13 @@ class App extends React.Component {
         this.setState({ tokenMetric: tokenMetric });
         break;
       case constants.key.marketData:
-        // Market data is composed of both CMC and market 
+        // Market data is composed of both CMC and market
         var marketData = [];
-        var cmcData = { 'category': 'CMC' };
-        var cmcOrigin = this.data.origin.filter(e => e.msg === constants.gather.cryptoQuote
-                                                && e.symbol === constants.target.symbol
-                                                && Date.parse(e.time) <= searchTime);
-        if (! cmcOrigin || cmcOrigin.length === 0) {
-          // No data
-          this.setState({ marketData: marketData });
-          return;
-        }
-        cmcOrigin = cmcOrigin.pop();
-
-        constants.target.quotes.forEach(v => {
-          cmcData[v + ':price'] = cmcOrigin.quote[v].price;
-          cmcData[v + ':volume'] = cmcOrigin.quote[v].volume_24h;
+        Object.values(this.data.csvMarketData).forEach(e => {
+          var found = e.filter(v => Date.parse(v.time) <= searchTime);
+          if (found.length > 0) marketData.push(found[found.length-1]);
         });
-        marketData.push(cmcData);
-        constants.target.markets.forEach(market => {
-          let data = this.data.origin
-            .filter(e => e.msg === constants.gather.marketPairs
-                    && e.symbol === constants.target.symbol
-                    && e.market === market
-                    && Date.parse(e.time) <= searchTime);
-          // No data
-          if (! data || data.length === 0) return;
-          data = data.pop().quote;
-    
-          let nItem = { 'category': market };
-          constants.target.quotes.forEach(quote => {
-            nItem[quote + ':price'] = data[quote].price;
-            nItem[quote + ':volume'] = data[quote].volume_24h;
-          });
-          marketData.push(nItem);
-          this.setState({ marketData: marketData });
-        });
+        this.setState({ marketData: marketData });
         break;
       default: break;
     }
