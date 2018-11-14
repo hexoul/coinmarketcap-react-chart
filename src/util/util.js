@@ -66,10 +66,10 @@ const lineChartOptions = (title) => {
   const getMarketDataCSV = (market, e) => {
     return {
       category: market,
-      usdPrice: e.quote.USD.price,
-      usdVolume: e.quote.USD.volume_24h,
-      ethPrice: e.quote.ETH.price,
-      btcPrice: e.quote.BTC.price,
+      usdPrice: Number(e.quote.USD.price).toFixed(8),
+      usdVolume: Number(e.quote.USD.volume_24h).toFixed(8),
+      ethPrice: Number(e.quote.ETH.price).toFixed(8),
+      btcPrice: Number(e.quote.BTC.price).toFixed(8),
       time: e.time,
     }
   }
