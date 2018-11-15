@@ -40,6 +40,11 @@ const lineChartOptions = (title) => {
   }
   
   const lineChartWithPriceVolume = (labels, prices, volumes) => {
+    if (labels.length > 100) {
+      labels = labels.slice(labels.length -100, labels.length -1);
+      prices = prices.slice(prices.length -100, prices.length -1);
+      volumes = volumes.slice(volumes.length -100, volumes.length -1);
+    }
     return {
       labels: labels,
       datasets: [

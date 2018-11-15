@@ -12,6 +12,15 @@ var csvHeaders = {
         { label: 'BTC Price', key: 'btcPrice' },
         { label: 'Volume (USD)', key: 'usdVolume' },
         { label: 'Time', key: 'time' },
+    ],
+    ohlcvData: [
+        { label: 'Date', key: 'date' },
+        { label: 'Unit', key: 'unit' },
+        { label: 'Open', key: 'open' },
+        { label: 'High', key: 'high' },
+        { label: 'Low', key: 'low' },
+        { label: 'Close', key: 'close' },
+        { label: 'Volume', key: 'volume' },
     ]
 };
 

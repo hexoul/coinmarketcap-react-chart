@@ -23,6 +23,7 @@ class App extends React.Component {
     ready: false,
     tokenMetric: [],
     marketData: [],
+    ohlcvData: [],
   };
 
   async loadRawData() {
@@ -113,6 +114,124 @@ class App extends React.Component {
     }
   }
 
+  getTokenMetricRender() {
+    return <div>
+      <Row>
+        <Col span={4}><h3>Token Metric</h3></Col>
+        <Col span={18}>
+          <DatePicker format='YYYY/MM/DD' onChange={(d, ds) => this.onSearchByTime(constants.key.tokenMetric, true, ds)} />
+          {' '}<TimePicker format='HH:mm:ss' onChange={(t, ts) => this.onSearchByTime(constants.key.tokenMetric, false, ts)} />
+          {this.state.ready &&
+            <CSVLink
+              filename='token-metric.csv'
+              headers={csvHeaders.tokenMetric}
+              data={this.data.origin.filter(e => e.msg === constants.gather.tokenMetric && e.symbol === constants.target.symbol)}
+            > Download</CSVLink>
+          }
+        </Col>
+      </Row>
+      <br />
+      {this.state.ready &&
+        <Row>
+          <Col span={10}>
+            <Table
+              size='small'
+              pagination={false}
+              rowKey={record => record.symbol}
+              columns={columns.TokenMetric}
+              dataSource={this.state.tokenMetric}
+            />
+          </Col>
+        </Row>
+      }
+    </div>
+  }
+
+  getMarketDataRender() {
+    return <div>
+      <Row>
+        <Col span={4}><h3>Market Data</h3></Col>
+        <Col span={20}>
+          <DatePicker format='YYYY/MM/DD' onChange={(d, ds) => this.onSearchByTime(constants.key.marketData, true, ds)} />
+          {' '}<TimePicker format='HH:mm:ss' onChange={(t, ts) => this.onSearchByTime(constants.key.marketData, false, ts)} />
+          {this.state.ready &&
+            Object.keys(this.data.csvMarketData).map(market => {
+              return <CSVLink
+                key={market}
+                filename={'market-data-' + market + '.csv'}
+                headers={csvHeaders.marketData}
+                data={this.data.csvMarketData[market]}
+              > {market} </CSVLink>
+            })
+          }
+        </Col>
+      </Row>
+      <br />
+      {this.state.ready &&
+        <Row>
+          <Col span={22}>
+            <Table
+              size='small'
+              pagination={false}
+              rowKey={record => record.category}
+              columns={columns.MarketData}
+              dataSource={this.state.marketData}
+            />
+          </Col>
+        </Row>
+      }
+    </div>
+  }
+
+  getOhlcvRender() {
+    return <div>
+      <Row>
+        <Col span={4}><h3>OHLCV</h3></Col>
+        <Col span={20}>
+          {this.state.ready &&
+            <div>Ready..</div>
+          }
+        </Col>
+      </Row>
+      <br />
+      {this.state.ready &&
+        <Row>
+          <Col span={22}>
+            <Table
+              size='small'
+              pagination={false}
+              rowKey={record => record.date}
+              columns={columns.Ohlcv}
+              dataSource={this.state.ohlcvData}
+            />
+          </Col>
+        </Row>
+      }
+    </div>
+  }
+
+  getChartRender() {
+    return <div>
+      <h3>Chart</h3>
+      {this.state.ready &&
+        <Row>
+          <Col span={11}>
+            <Line
+              data={this.data.lineChart[constants.target.quotes[0]]}
+              options={lineChartOptions(constants.target.symbol + '/' + constants.target.quotes[0] + ' Price & Volume')}
+            />
+          </Col>
+          <Col span={11} offset={1}>
+            <Line
+              data={this.data.lineChart[constants.target.quotes[2]]}
+              options={lineChartOptions(constants.target.symbol + '/' + constants.target.quotes[2] + ' Price & Volume')}
+            />
+          </Col>
+        </Row>
+      }
+    </div>
+  }
+
   render() {
     return (
       <Layout className='layout'>
@@ -120,83 +239,13 @@ class App extends React.Component {
           Header
         </Layout.Header>
         <Layout.Content style={{ padding: '5vh 5vw 0vh 5vw', backgroundColor: '#fff' }}>
-          <Row>
-            <Col span={4}><h3>Token Metric</h3></Col>
-            <Col span={18}>
-              <DatePicker format='YYYY/MM/DD' onChange={(d, ds) => this.onSearchByTime(constants.key.tokenMetric, true, ds)} />
-              {' '}<TimePicker format='HH:mm:ss' onChange={(t, ts) => this.onSearchByTime(constants.key.tokenMetric, false, ts)} />
-              {this.state.ready &&
-                <CSVLink
-                  filename='token-metric.csv'
-                  headers={csvHeaders.tokenMetric}
-                  data={this.data.origin.filter(e => e.msg === constants.gather.tokenMetric && e.symbol === constants.target.symbol)}
-                > Download</CSVLink>
-              }
-            </Col>
-          </Row>
+          {this.getTokenMetricRender()}
           <br />
-          {this.state.ready &&
-            <Row>
-              <Col span={10}>
-                <Table
-                  size='small'
-                  pagination={false}
-                  rowKey={record => record.symbol}
-                  columns={columns.TokenMetric}
-                  dataSource={this.state.tokenMetric}
-                />
-              </Col>
-            </Row>
-          }
+          {this.getMarketDataRender()}
           <br />
-          <Row>
-            <Col span={4}><h3>Market Data</h3></Col>
-            <Col span={20}>
-              <DatePicker format='YYYY/MM/DD' onChange={(d, ds) => this.onSearchByTime(constants.key.marketData, true, ds)} />
-              {' '}<TimePicker format='HH:mm:ss' onChange={(t, ts) => this.onSearchByTime(constants.key.marketData, false, ts)} />
-              {this.state.ready &&
-                Object.keys(this.data.csvMarketData).map(market => {
-                  return <CSVLink
-                    key={market}
-                    filename={'market-data-' + market + '.csv'}
-                    headers={csvHeaders.marketData}
-                    data={this.data.csvMarketData[market]}
-                  > {market} </CSVLink>
-                })
-              }
-            </Col>
-          </Row>
+          {this.getOhlcvRender()}
           <br />
-          {this.state.ready &&
-            <Row>
-              <Col span={22}>
-                <Table
-                  size='small'
-                  pagination={false}
-                  rowKey={record => record.category}
-                  columns={columns.MarketData}
-                  dataSource={this.state.marketData}
-                />
-              </Col>
-            </Row>
-          }
-          <br /><h3>Chart</h3>
-          {this.state.ready &&
-            <Row>
-              <Col span={11}>
-                <Line
-                  data={this.data.lineChart[constants.target.quotes[0]]}
-                  options={lineChartOptions(constants.target.symbol + '/' + constants.target.quotes[0] + ' Price & Volume')}
-                />
-              </Col>
-              <Col span={11} offset={1}>
-                <Line
-                  data={this.data.lineChart[constants.target.quotes[2]]}
-                  options={lineChartOptions(constants.target.symbol + '/' + constants.target.quotes[2] + ' Price & Volume')}
-                />
-              </Col>
-            </Row>
-          }
+          {this.getChartRender()}
         </Layout.Content>
         <Layout.Footer>
           <h3><a href={getURL()}>Raw data</a></h3>

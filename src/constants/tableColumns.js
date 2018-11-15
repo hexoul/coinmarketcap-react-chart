@@ -60,4 +60,67 @@ columns.MarketData = [
   }
 ];
 
+columns.Ohlcv = [
+  {
+    title: 'Date',
+    dataIndex: 'date',
+    key: 'date',
+    width: '5%',
+  },
+  {
+    title: 'Unit',
+    dataIndex: 'unit',
+    key: 'unit',
+    width: '5%',
+  },
+  {
+    title: 'Open',
+    dataIndex: 'open',
+    key: 'open',
+    width: '10%',
+  },
+  {
+    title: 'High',
+    dataIndex: 'high',
+    key: 'high',
+    width: '10%',
+  },
+  {
+    title: 'Low',
+    dataIndex: 'low',
+    key: 'low',
+    width: '10%',
+  },
+  {
+    title: 'Close',
+    dataIndex: 'close',
+    key: 'close',
+    width: '10%',
+  },
+  {
+    title: 'Volume',
+    dataIndex: 'volume',
+    key: 'volume',
+    width: '15%',
+  },
+  {
+    title: 'Coinsuper',
+    dataIndex: 'coinsuperVolume',
+    key: 'coinsuperVolume',
+    width: '15%',
+  },
+  {
+    title: 'Kucoin',
+    dataIndex: 'kucoinVolume',
+    key: 'kucoinVolume',
+    width: '15%',
+  },
+  {
+    title: 'Cap',
+    dataIndex: 'marketCap',
+    key: 'marketCap',
+    width: '5%',
+  }
+];
+
 export {columns}
