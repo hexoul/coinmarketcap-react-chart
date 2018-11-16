@@ -115,7 +115,8 @@ class App extends React.Component {
     if (isDate) this.data.searchDate[target] = dateStr;
     else this.data.searchTime[target] = dateStr;
 
-    if (! this.data.searchDate[target] || ! this.data.searchTime[target]) return;
+    if (target === constants.key.ohlcvData && this.data.searchDate[target]);
+    else if (! this.data.searchDate[target] || ! this.data.searchTime[target]) return;
 
     // Search by given time
     let searchTime = Date.parse(this.data.searchDate[target] + ' ' + this.data.searchTime[target]);
@@ -134,6 +135,15 @@ class App extends React.Component {
           if (found.length > 0) marketData.push(found[0]);
         });
         this.setState({ marketData: marketData });
+        break;
+      case constants.key.ohlcvData:
+        searchTime = Date.parse(this.data.searchDate[target])
+        var ohlcvData = [];
+        Object.values(this.data.csvOhlcvData).forEach(e => {
+          var found = e.filter(v => Date.parse(v.date) <= searchTime);
+          if (found.length > 0) ohlcvData.push(found[0]);
+        });
+        this.setState({ ohlcvData: ohlcvData });
         break;
       default: break;
     }
@@ -213,6 +223,7 @@ class App extends React.Component {
       <Row>
         <Col span={4}><h3>OHLCV</h3></Col>
         <Col span={20}>
+          <DatePicker format='YYYY/MM/DD' onChange={(d, ds) => this.onSearchByTime(constants.key.ohlcvData, true, ds)} />{' '}
           {this.state.ready &&
             Object.keys(this.data.csvOhlcvData).map(quote => {
               return <CSVLink

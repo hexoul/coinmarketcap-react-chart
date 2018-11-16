@@ -73,10 +73,13 @@ const lineChartOptions = (title) => {
       category: e.market,
       usdPrice: Number(e.quote.USD.price).toFixed(8),
       usdVolume: Number(e.quote.USD.volume_24h).toFixed(8),
+      usdMarketCap: e.quote.USD.market_cap,
       ethPrice: Number(e.quote.ETH.price).toFixed(8),
       ethVolume: Number(e.quote.ETH.volume_24h).toFixed(8),
+      ethMarketCap: e.quote.ETH.market_cap,
       btcPrice: Number(e.quote.BTC.price).toFixed(8),
       btcVolume: Number(e.quote.BTC.volume_24h).toFixed(8),
+      btcMarketCap: e.quote.BTC.market_cap,
       time: e.time,
     }
   }
@@ -91,13 +94,11 @@ const lineChartOptions = (title) => {
       low: Number(e.quote.low).toFixed(8),
       close: Number(e.quote.close).toFixed(8),
       volume: Number(e.quote.volume).toFixed(8),
+      marketCap: md[e.convert.toLowerCase() + 'MarketCap'],
     };
     constants.target.markets.forEach(market => {
       let found = md[market].filter(v => Date.parse(v.time) <= targetTime);
-      if (found && found.length) {
-        console.log(market, e.convert, found[0]);
-        ret[market + 'Volume'] = found[0][e.convert.toLowerCase() + 'Volume'];
-      }
+      if (found && found.length) ret[market + 'Volume'] = found[0][e.convert.toLowerCase() + 'Volume'];
     });
     return ret;
   }

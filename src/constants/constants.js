@@ -17,6 +17,7 @@ constants.target = {
 constants.key = {
     tokenMetric: 'metric',
     marketData: 'market',
+    ohlcvData: 'ohlcv',
 };
 
 // About gather
