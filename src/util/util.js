@@ -68,15 +68,38 @@ const lineChartOptions = (title) => {
     };
   }
 
-  const getMarketDataCSV = (market, e) => {
+  const getMarketDataCSV = e => {
     return {
-      category: market,
+      category: e.market,
       usdPrice: Number(e.quote.USD.price).toFixed(8),
       usdVolume: Number(e.quote.USD.volume_24h).toFixed(8),
       ethPrice: Number(e.quote.ETH.price).toFixed(8),
+      ethVolume: Number(e.quote.ETH.volume_24h).toFixed(8),
       btcPrice: Number(e.quote.BTC.price).toFixed(8),
+      btcVolume: Number(e.quote.BTC.volume_24h).toFixed(8),
       time: e.time,
     }
+  }
+
+  const getOhlcvCSV = (e, md) => {
+    let targetTime = Date.parse(e.ctime);
+    var ret = {
+      date: e.ctime.split('T')[0],
+      unit: e.convert,
+      open: Number(e.quote.open).toFixed(8),
+      high: Number(e.quote.high).toFixed(8),
+      low: Number(e.quote.low).toFixed(8),
+      close: Number(e.quote.close).toFixed(8),
+      volume: Number(e.quote.volume).toFixed(8),
+    };
+    constants.target.markets.forEach(market => {
+      let found = md[market].filter(v => Date.parse(v.time) <= targetTime);
+      if (found && found.length) {
+        console.log(market, e.convert, found[0]);
+        ret[market + 'Volume'] = found[0][e.convert.toLowerCase() + 'Volume'];
+      }
+    });
+    return ret;
   }
 
   export {
@@ -85,4 +108,5 @@ const lineChartOptions = (title) => {
     lineChartOptions,
     lineChartWithPriceVolume,
     getMarketDataCSV,
+    getOhlcvCSV
   }

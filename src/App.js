@@ -4,7 +4,7 @@ import { Line } from 'react-chartjs-2';
 import { CSVLink } from 'react-csv';
 
 import { constants, columns, csvHeaders } from './constants';
-import { getURL, getSource, lineChartOptions, lineChartWithPriceVolume, getMarketDataCSV } from './util';
+import { getURL, getSource, lineChartOptions, lineChartWithPriceVolume, getMarketDataCSV, getOhlcvCSV } from './util';
 
 // Styles.
 import './App.css';
@@ -15,6 +15,7 @@ class App extends React.Component {
     origin: [],
     lineChart: {},
     csvMarketData: {},
+    csvOhlcvData: {},
     searchDate: {},
     searchTime: {},
   };
@@ -30,6 +31,7 @@ class App extends React.Component {
     this.data.origin = [];
     this.data.lineChart = {};
     
+    // Get source from remote repo
     let ret = await getSource();
     ret.split('\n').forEach(line => {
       if (! line) return;
@@ -37,7 +39,8 @@ class App extends React.Component {
     });
     if (this.data.origin.length === 0) return;
    
-    // For charts
+    //--------------------------------- Chart ---------------------------------//
+    // Construct raw data for charts
     var labels = {}, prices = {}, volumes = {};
     constants.target.quotes.forEach(v => { labels[v] = []; prices[v] = []; volumes[v] = [] });
     this.data.origin.filter(e => e.msg === constants.gather.cryptoQuote && e.symbol === constants.target.symbol).forEach(e => {
@@ -54,27 +57,49 @@ class App extends React.Component {
       cmcData[v + ':volume'] = volumes[v][volumes[v].length -1];
     });
     
-    // For CSV
-    this.data.csvMarketData['CMC'] = this.data.origin.filter(e => e.msg === constants.gather.cryptoQuote && e.symbol === constants.target.symbol).map(e => getMarketDataCSV('CMC', e));
+    // After constructing charts, reverse array to descending order for CSV and table
+    this.data.origin.reverse();
+
+    //--------------------------------- CSV ---------------------------------//
+    // Construct raw data for CSV of market data
+    this.data.csvMarketData['CMC'] = this.data.origin
+      .filter(e => e.msg === constants.gather.cryptoQuote && e.symbol === constants.target.symbol)
+      .map(e => { e.market = 'CMC'; return getMarketDataCSV(e); });
     constants.target.markets.forEach(market => {
       this.data.csvMarketData[market] = this.data.origin
         .filter(e => e.msg === constants.gather.marketPairs
                 && e.symbol === constants.target.symbol
                 && e.market === market)
-        .map(e => getMarketDataCSV(market, e));
+        .map(e => getMarketDataCSV(e));
     });
 
-    // For market data table
+    // Construct raw data for CSV of ohlcv
+    constants.target.quotes.forEach(quote => {
+      this.data.csvOhlcvData[quote] = this.data.origin
+        .filter(e => e.msg === constants.gather.ohlcv
+                && e.symbol === constants.target.symbol
+                && e.convert === quote)
+        .map(e => getOhlcvCSV(e, this.data.csvMarketData));
+    });
+
+    //--------------------------------- Table ---------------------------------//
+    // Construct raw data for token metric table
+    var tokenMetric = this.data.origin.filter(e => e.msg === constants.gather.tokenMetric && e.symbol === constants.target.symbol);
+    if (tokenMetric.length > 0) tokenMetric = tokenMetric.slice(0, 1);
+
+    // Construct raw data for market data table
     var marketData = [];
     Object.values(this.data.csvMarketData).forEach(e => {
-      if (e.length > 0) marketData.push(e[e.length-1]);
+      if (e.length > 0) marketData.push(e[0]);
+    });
+    
+    // Construct raw data for ohlcv table
+    var ohlcvData = [];
+    Object.values(this.data.csvOhlcvData).forEach(e => {
+      if (e.length > 0) ohlcvData.push(e[0]);
     });
 
-    // For token metric table
-    var tokenMetric = this.data.origin.filter(e => e.msg === constants.gather.tokenMetric && e.symbol === constants.target.symbol);
-    if (tokenMetric.length > 0) tokenMetric = [tokenMetric.pop()];
-
-    this.setState({ ready: true, marketData: marketData, tokenMetric: tokenMetric });
+    this.setState({ ready: true, tokenMetric: tokenMetric, marketData: marketData, ohlcvData: ohlcvData });
   }
 
   constructor() {
@@ -98,7 +123,7 @@ class App extends React.Component {
       // Filter and pick last one that is closest data point
       case constants.key.tokenMetric:
         var tokenMetric = this.data.origin.filter(e => e.msg === constants.gather.tokenMetric && Date.parse(e.time) <= searchTime);
-        if (tokenMetric.length > 0) tokenMetric = [tokenMetric.pop()];
+        if (tokenMetric.length > 0) tokenMetric = [tokenMetric[0]];
         this.setState({ tokenMetric: tokenMetric });
         break;
       case constants.key.marketData:
@@ -106,7 +131,7 @@ class App extends React.Component {
         var marketData = [];
         Object.values(this.data.csvMarketData).forEach(e => {
           var found = e.filter(v => Date.parse(v.time) <= searchTime);
-          if (found.length > 0) marketData.push(found[found.length-1]);
+          if (found.length > 0) marketData.push(found[0]);
         });
         this.setState({ marketData: marketData });
         break;
@@ -189,7 +214,14 @@ class App extends React.Component {
         <Col span={4}><h3>OHLCV</h3></Col>
         <Col span={20}>
           {this.state.ready &&
-            <div>Ready..</div>
+            Object.keys(this.data.csvOhlcvData).map(quote => {
+              return <CSVLink
+                key={quote}
+                filename={'ohlcv-' + quote + '.csv'}
+                headers={csvHeaders.ohlcvData}
+                data={this.data.csvOhlcvData[quote]}
+              > {quote} </CSVLink>
+            })
           }
         </Col>
       </Row>
@@ -200,7 +232,7 @@ class App extends React.Component {
             <Table
               size='small'
               pagination={false}
-              rowKey={record => record.date}
+              rowKey={record => record.unit}
               columns={columns.Ohlcv}
               dataSource={this.state.ohlcvData}
             />

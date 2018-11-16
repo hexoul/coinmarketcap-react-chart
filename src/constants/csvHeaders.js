@@ -1,8 +1,8 @@
 var csvHeaders = {
     tokenMetric: [
-        { label: 'Holders', key: 'holders' },
-        { label: 'Transfers', key: 'transfers' },
-        { label: 'Txns', key: 'txns' },
+        { label: '# Holders', key: 'holders' },
+        { label: '# Transfers', key: 'transfers' },
+        { label: '# Transactions', key: 'txns' },
         { label: 'Time', key: 'time' },
     ],
     marketData: [
@@ -21,6 +21,8 @@ var csvHeaders = {
         { label: 'Low', key: 'low' },
         { label: 'Close', key: 'close' },
         { label: 'Volume', key: 'volume' },
+        { label: 'Coinsuper', key: 'coinsuperVolume' },
+        { label: 'Kucoin', key: 'kucoinVolume' },
     ]
 };
 

@@ -24,6 +24,7 @@ constants.gather = {
     cryptoQuote: 'GatherCryptoQuote',
     marketPairs: 'GatherExchangeMarketPairs',
     tokenMetric: 'GatherTokenMetric',
+    ohlcv: 'GatherOhlcv',
 }
 
 // About rendering
