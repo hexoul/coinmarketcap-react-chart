@@ -2,7 +2,7 @@
 Graph rendering from [go-coinmarketcap](https://github.com/hexoul/go-coinmarketcap)'s statistics log
 
 ## Sample
-[Sample](https://raw.githubusercontent.com/hexoul/coinmarketcap-react-chart/master/sample.png)
+![Sample](https://raw.githubusercontent.com/hexoul/coinmarketcap-react-chart/master/sample.png)
 
 ## Preview
 
