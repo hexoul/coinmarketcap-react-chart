@@ -4,7 +4,7 @@ import { Line } from 'react-chartjs-2';
 import { CSVLink } from 'react-csv';
 
 import { constants, columns, csvHeaders } from './constants';
-import { getURL, getSource, lineChartOptions, lineChartWithPriceVolume, getMarketDataCSV, getOhlcvCSV } from './util';
+import { getURL, getSource, lineChartOptions, lineChartWithPriceVolume, lineChartWithCloseVolume, getMarketDataCSV, getOhlcvCSV } from './util';
 
 // Styles.
 import './App.css';
@@ -40,22 +40,41 @@ class App extends React.Component {
     if (this.data.origin.length === 0) return;
    
     //--------------------------------- Chart ---------------------------------//
-    // Construct raw data for charts
+    // Construct raw data for price & volume chart
     var labels = {}, prices = {}, volumes = {};
     constants.target.quotes.forEach(v => { labels[v] = []; prices[v] = []; volumes[v] = [] });
-    this.data.origin.filter(e => e.msg === constants.gather.cryptoQuote && e.symbol === constants.target.symbol).forEach(e => {
+    this.data.origin
+      .filter(e => e.msg === constants.gather.cryptoQuote && e.symbol === constants.target.symbol)
+      .forEach(e => {
       constants.target.quotes.forEach(v => {
         labels[v].push(e.time);
         prices[v].push(e.quote[v].price);
         volumes[v].push(e.quote[v].volume_24h);
       });
     });
-    var cmcData = { 'category': 'CMC' };
     constants.target.quotes.forEach(v => {
       this.data.lineChart[v] = lineChartWithPriceVolume(labels[v], prices[v], volumes[v]);
-      cmcData[v + ':price'] = prices[v][prices[v].length -1];
-      cmcData[v + ':volume'] = volumes[v][volumes[v].length -1];
     });
+
+    // Construct raw data for close chart
+    var cLabel = [], cClose = [], cVolume = [];
+    var prevMonday = new Date();
+    prevMonday.setDate(prevMonday.getDate() - 7 - (prevMonday.getDay() + 6) % 7);
+    var prevSunday = new Date();
+    prevSunday.setDate(prevSunday.getDate() + 6);
+    console.log(prevSunday);
+    this.data.origin
+      .filter(e => e.msg === constants.gather.ohlcv
+              && Date.parse(e.ctime) >= prevMonday.getTime()
+              && Date.parse(e.ctime) < prevSunday.getTime()
+              && e.symbol === constants.target.symbol
+              && e.convert === 'USD')
+      .forEach(e => {
+        cLabel.push(e.ctime);
+        cClose.push(e.quote.close);
+        cVolume.push(e.quote.volume);
+      });
+    this.data.lineChart['close'] = lineChartWithCloseVolume(cLabel, cClose, cVolume);
     
     // After constructing charts, reverse array to descending order for CSV and table
     this.data.origin.reverse();
@@ -257,14 +276,30 @@ class App extends React.Component {
     return <div>
       <h3>Chart</h3>
       {this.state.ready &&
-        <Row>
-          <Col span={22}>
-            <Line
-              data={this.data.lineChart[constants.target.quotes[0]]}
-              options={lineChartOptions(constants.target.symbol + '/' + constants.target.quotes[0] + ' Price & Volume')}
-            />
-          </Col>
-        </Row>
+        <div>
+          <Row>
+            <Col span={22}>
+              <Line
+                data={this.data.lineChart[constants.target.quotes[0]]}
+                options={lineChartOptions(constants.target.symbol + '/' + constants.target.quotes[0] + ' Price & Volume')}
+              />
+            </Col>
+          </Row>
+          <Row>
+            <Col span={11}>
+              <Line
+                data={this.data.lineChart['close']}
+                options={lineChartOptions('Weekly close & volume (unit: USD)')}
+              />
+            </Col>
+            <Col span={11} offset={1}>
+              <Line
+                data={this.data.lineChart['close']}
+                options={lineChartOptions('Weekly market volume (unit: USD)')}
+              />
+            </Col>
+          </Row>
+        </div>
       }
     </div>
   }

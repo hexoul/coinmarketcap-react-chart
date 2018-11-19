@@ -69,7 +69,7 @@ const lineChartWithPriceVolume = (labels, prices, volumes) => {
     labels: labels,
     datasets: [
       {
-        label: 'Prices',
+        label: 'Price',
         borderColor: 'rgba(246,44,44,1)',
         backgroundColor: 'rgba(246,44,44,1)',
         fill: false,
@@ -77,10 +77,34 @@ const lineChartWithPriceVolume = (labels, prices, volumes) => {
         yAxisID: 'y-axis-1',
       },
       {
-        label: 'Volumes',
+        label: 'Volume',
         borderColor: 'rgba(151,187,205,1)',
         backgroundColor: 'rgba(151,187,205,1)',
         fill: false,
+        data: volumes,
+        yAxisID: 'y-axis-2',
+      },
+    ]
+  };
+}
+
+const lineChartWithCloseVolume = (labels, closes, volumes) => {
+  return {
+    labels: labels,
+    datasets: [
+      {
+        label: 'Close',
+        borderColor: 'rgba(246,44,44,1)',
+        backgroundColor: 'rgba(246,44,44,1)',
+        fill: false,
+        data: closes,
+        yAxisID: 'y-axis-1',
+      },
+      {
+        label: 'Volume',
+        borderColor: 'rgba(151,187,205,1)',
+        backgroundColor: 'rgba(151,187,205,1)',
+        fill: true,
         data: volumes,
         yAxisID: 'y-axis-2',
       },
@@ -128,6 +152,7 @@ export {
   getSource,
   lineChartOptions,
   lineChartWithPriceVolume,
+  lineChartWithCloseVolume,
   getMarketDataCSV,
   getOhlcvCSV
 }
