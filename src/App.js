@@ -258,16 +258,10 @@ class App extends React.Component {
       <h3>Chart</h3>
       {this.state.ready &&
         <Row>
-          <Col span={11}>
+          <Col span={22}>
             <Line
               data={this.data.lineChart[constants.target.quotes[0]]}
               options={lineChartOptions(constants.target.symbol + '/' + constants.target.quotes[0] + ' Price & Volume')}
-            />
-          </Col>
-          <Col span={11} offset={1}>
-            <Line
-              data={this.data.lineChart[constants.target.quotes[2]]}
-              options={lineChartOptions(constants.target.symbol + '/' + constants.target.quotes[2] + ' Price & Volume')}
             />
           </Col>
         </Row>
