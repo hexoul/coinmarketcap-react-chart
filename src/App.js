@@ -39,6 +39,31 @@ class App extends React.Component {
     });
     if (this.data.origin.length === 0) return;
    
+    // Reverse array to descending order for CSV and table
+    this.data.origin.reverse();
+
+    //--------------------------------- CSV ---------------------------------//
+    // Construct raw data for CSV of market data
+    this.data.csvMarketData['CMC'] = this.data.origin
+      .filter(e => e.msg === constants.gather.cryptoQuote && e.symbol === constants.target.symbol)
+      .map(e => { e.market = 'CMC'; return getMarketDataCSV(e); });
+    constants.target.markets.forEach(market => {
+      this.data.csvMarketData[market] = this.data.origin
+        .filter(e => e.msg === constants.gather.marketPairs
+                && e.symbol === constants.target.symbol
+                && e.market === market)
+        .map(e => getMarketDataCSV(e));
+    });
+
+    // Construct raw data for CSV of ohlcv
+    constants.target.quotes.forEach(quote => {
+      this.data.csvOhlcvData[quote] = this.data.origin
+        .filter(e => e.msg === constants.gather.ohlcv
+                && e.symbol === constants.target.symbol
+                && e.convert === quote)
+        .map(e => getOhlcvCSV(e, this.data.csvMarketData));
+    });
+
     //--------------------------------- Chart ---------------------------------//
     // Construct raw data for price & volume chart
     var labels = {}, prices = {}, volumes = {};
@@ -76,31 +101,6 @@ class App extends React.Component {
       });
     this.data.lineChart['close'] = lineChartWithCloseVolume(cLabel, cClose, cVolume);
     
-    // After constructing charts, reverse array to descending order for CSV and table
-    this.data.origin.reverse();
-
-    //--------------------------------- CSV ---------------------------------//
-    // Construct raw data for CSV of market data
-    this.data.csvMarketData['CMC'] = this.data.origin
-      .filter(e => e.msg === constants.gather.cryptoQuote && e.symbol === constants.target.symbol)
-      .map(e => { e.market = 'CMC'; return getMarketDataCSV(e); });
-    constants.target.markets.forEach(market => {
-      this.data.csvMarketData[market] = this.data.origin
-        .filter(e => e.msg === constants.gather.marketPairs
-                && e.symbol === constants.target.symbol
-                && e.market === market)
-        .map(e => getMarketDataCSV(e));
-    });
-
-    // Construct raw data for CSV of ohlcv
-    constants.target.quotes.forEach(quote => {
-      this.data.csvOhlcvData[quote] = this.data.origin
-        .filter(e => e.msg === constants.gather.ohlcv
-                && e.symbol === constants.target.symbol
-                && e.convert === quote)
-        .map(e => getOhlcvCSV(e, this.data.csvMarketData));
-    });
-
     //--------------------------------- Table ---------------------------------//
     // Construct raw data for token metric table
     var tokenMetric = this.data.origin.filter(e => e.msg === constants.gather.tokenMetric && e.symbol === constants.target.symbol);
