@@ -80,7 +80,7 @@ const lineChartWithPriceVolume = (labels, prices, volumes) => {
         label: 'Volume',
         borderColor: 'rgba(151,187,205,1)',
         backgroundColor: 'rgba(151,187,205,1)',
-        fill: false,
+        fill: true,
         data: volumes,
         yAxisID: 'y-axis-2',
       },
