@@ -1,10 +1,14 @@
 import React from 'react';
 import { Layout, Table, Row, Col, DatePicker, TimePicker } from 'antd';
-import { Line } from 'react-chartjs-2';
+import { Line, Bar } from 'react-chartjs-2';
 import { CSVLink } from 'react-csv';
 
 import { constants, columns, csvHeaders } from './constants';
-import { getURL, getSource, lineChartOptions, lineChartWithPriceVolume, lineChartWithCloseVolume, getMarketDataCSV, getOhlcvCSV } from './util';
+import {
+  getURL, getSource,
+  lineChartOptions, lineChartWithPriceVolume, lineChartWithCloseVolume,
+  barChartOptions, barChartWithVolumes,
+  getMarketDataCSV, getOhlcvCSV } from './util';
 
 // Styles.
 import './App.css';
@@ -13,7 +17,7 @@ class App extends React.Component {
   
   data = {
     origin: [],
-    lineChart: {},
+    chart: {},
     csvMarketData: {},
     csvOhlcvData: {},
     searchDate: {},
@@ -29,7 +33,7 @@ class App extends React.Component {
 
   async loadRawData() {
     this.data.origin = [];
-    this.data.lineChart = {};
+    this.data.chart = {};
     
     // Get source from remote repo
     let ret = await getSource();
@@ -78,7 +82,7 @@ class App extends React.Component {
       });
     });
     constants.target.quotes.forEach(v => {
-      this.data.lineChart[v] = lineChartWithPriceVolume(labels[v], prices[v], volumes[v]);
+      this.data.chart[v] = lineChartWithPriceVolume(labels[v], prices[v], volumes[v]);
     });
 
     // Construct raw data for close chart
@@ -86,8 +90,7 @@ class App extends React.Component {
     var prevMonday = new Date();
     prevMonday.setDate(prevMonday.getDate() - 7 - (prevMonday.getDay() + 6) % 7);
     var prevSunday = new Date();
-    prevSunday.setDate(prevSunday.getDate() + 6);
-    console.log(prevSunday);
+    prevSunday.setDate(prevMonday.getDate() + 6);
     this.data.origin
       .filter(e => e.msg === constants.gather.ohlcv
               && Date.parse(e.ctime) >= prevMonday.getTime()
@@ -99,7 +102,15 @@ class App extends React.Component {
         cClose.push(e.quote.close);
         cVolume.push(e.quote.volume);
       });
-    this.data.lineChart['close'] = lineChartWithCloseVolume(cLabel, cClose, cVolume);
+    this.data.chart['close'] = lineChartWithCloseVolume(cLabel, cClose, cVolume);
+
+    // Construct raw data for market volume chart
+    var marketVolumes = this.data.csvOhlcvData['USD']
+      .filter(e => Date.parse(e.date) >= prevMonday.getTime()
+              && Date.parse(e.date) < prevSunday.getTime())
+      .reverse();
+      
+    this.data.chart['market'] = barChartWithVolumes(marketVolumes);
     
     //--------------------------------- Table ---------------------------------//
     // Construct raw data for token metric table
@@ -278,9 +289,9 @@ class App extends React.Component {
       {this.state.ready &&
         <div>
           <Row>
-            <Col span={22}>
+            <Col span={23}>
               <Line
-                data={this.data.lineChart[constants.target.quotes[0]]}
+                data={this.data.chart[constants.target.quotes[0]]}
                 options={lineChartOptions(constants.target.symbol + '/' + constants.target.quotes[0] + ' Price & Volume')}
               />
             </Col>
@@ -288,14 +299,14 @@ class App extends React.Component {
           <Row>
             <Col span={11}>
               <Line
-                data={this.data.lineChart['close']}
+                data={this.data.chart['close']}
                 options={lineChartOptions('Weekly close & volume (unit: USD)')}
               />
             </Col>
             <Col span={11} offset={1}>
-              <Line
-                data={this.data.lineChart['close']}
-                options={lineChartOptions('Weekly market volume (unit: USD)')}
+              <Bar
+                data={this.data.chart['market']}
+                options={barChartOptions('Weekly market volume (unit: USD)')}
               />
             </Col>
           </Row>

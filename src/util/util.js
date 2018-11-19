@@ -112,6 +112,51 @@ const lineChartWithCloseVolume = (labels, closes, volumes) => {
   };
 }
 
+const barChartOptions = (title) => {
+  return {
+    title: {
+      display: true,
+      text: title,
+    },
+    tooltips: {
+      mode: 'index',
+      intersect: false,
+    },
+    responsive: true,
+    scales: {
+      xAxes: [{
+        stacked: true,
+      }],
+      yAxes: [{
+        stacked: true,
+      }]
+    },
+  }
+}
+
+const barChartWithVolumes = (volumes) => {
+  return {
+    labels: Object.values(volumes).map(e => e.date),
+    datasets: [
+      {
+        label: 'kucoin',
+        backgroundColor: 'rgba(146,64,64,1)',
+        data: Object.values(volumes).map(e => e.kucoinVolume),
+      },
+      {
+        label: 'coinsuper',
+        backgroundColor: 'rgba(46,104,104,1)',
+        data: Object.values(volumes).map(e => e.coinsuperVolume),
+      },
+      {
+        label: 'others',
+        backgroundColor: 'rgba(246,44,44,1)',
+        data: Object.values(volumes).map(e => e.volume - e.kucoinVolume - e.coinsuperVolume),
+      },
+    ]
+  };
+}
+
 const getMarketDataCSV = e => {
   return {
     category: e.market,
@@ -153,6 +198,8 @@ export {
   lineChartOptions,
   lineChartWithPriceVolume,
   lineChartWithCloseVolume,
+  barChartOptions,
+  barChartWithVolumes,
   getMarketDataCSV,
   getOhlcvCSV
 }
