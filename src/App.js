@@ -109,7 +109,7 @@ class App extends React.Component {
       .filter(e => Date.parse(e.date) >= prevMonday.getTime()
               && Date.parse(e.date) < prevSunday.getTime())
       .reverse();
-      
+
     this.data.chart['market'] = barChartWithVolumes(marketVolumes);
     
     //--------------------------------- Table ---------------------------------//
