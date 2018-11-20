@@ -1,4 +1,5 @@
 import React from 'react';
+import ReactLoading from 'react-loading';
 import { Layout, Table, Row, Col, DatePicker, TimePicker } from 'antd';
 import { Line, Bar } from 'react-chartjs-2';
 import { CSVLink } from 'react-csv';
@@ -321,14 +322,23 @@ class App extends React.Component {
         <Layout.Header>
           Header
         </Layout.Header>
-        <Layout.Content style={{ padding: '5vh 5vw 0vh 5vw', backgroundColor: '#fff' }}>
-          {this.getTokenMetricRender()}
-          <br />
-          {this.getMarketDataRender()}
-          <br />
-          {this.getOhlcvRender()}
-          <br />
-          {this.getChartRender()}
+        <Layout.Content style={{ padding: '5vh 5vw 0vh 5vw', backgroundColor: '#fff', minHeight: '70vh' }}>
+          {this.state.ready ?
+            <div>
+              {this.getTokenMetricRender()}
+              <br />
+              {this.getMarketDataRender()}
+              <br />
+              {this.getOhlcvRender()}
+              <br />
+              {this.getChartRender()}
+            </div>
+            :
+            <center>
+              <h1>Loading...</h1>
+              <ReactLoading type='spin' color='#1DA57A' height='20vh' width='20vw' />
+            </center>
+          }
         </Layout.Content>
         <Layout.Footer>
           <h3><a href={getURL()}>Raw data</a></h3>

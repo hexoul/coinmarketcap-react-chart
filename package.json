@@ -12,6 +12,7 @@
     "react-chartjs-2": "^2.7.4",
     "react-csv": "^1.0.18",
     "react-dom": "^16.5.2",
+    "react-loading": "^2.0.3",
     "react-scripts": "^2.1.1"
   },
   "scripts": {
