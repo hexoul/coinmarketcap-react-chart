@@ -1,5 +1,16 @@
 import { constants } from '../constants';
 
+window.chartColors = {
+	red: 'rgb(255, 99, 132)',
+	orange: 'rgb(255, 159, 64)',
+	yellow: 'rgb(255, 205, 86)',
+	green: 'rgb(75, 192, 192)',
+  blue: 'rgb(54, 162, 235)',
+  lightBlue: 'rgb(151,187,205)',
+	purple: 'rgb(153, 102, 255)',
+	grey: 'rgb(201, 203, 207)'
+};
+
 const getURL = () => {
   return `https://raw.githubusercontent.com/${constants.organization}/${constants.repoName}/${constants.branch}/${
     constants.sourceFile
@@ -70,16 +81,16 @@ const lineChartWithPriceVolume = (labels, prices, volumes) => {
     datasets: [
       {
         label: 'Price',
-        borderColor: 'rgba(246,44,44,1)',
-        backgroundColor: 'rgba(246,44,44,1)',
+        borderColor: window.chartColors.red,
+        backgroundColor: window.chartColors.red,
         fill: false,
         data: prices,
         yAxisID: 'y-axis-1',
       },
       {
         label: 'Volume',
-        borderColor: 'rgba(151,187,205,1)',
-        backgroundColor: 'rgba(151,187,205,1)',
+        borderColor: window.chartColors.lightBlue,
+        backgroundColor: window.chartColors.lightBlue,
         fill: true,
         data: volumes,
         yAxisID: 'y-axis-2',
@@ -94,16 +105,16 @@ const lineChartWithCloseVolume = (labels, closes, volumes) => {
     datasets: [
       {
         label: 'Close',
-        borderColor: 'rgba(246,44,44,1)',
-        backgroundColor: 'rgba(246,44,44,1)',
+        borderColor: window.chartColors.red,
+        backgroundColor: window.chartColors.red,
         fill: false,
         data: closes,
         yAxisID: 'y-axis-1',
       },
       {
         label: 'Volume',
-        borderColor: 'rgba(151,187,205,1)',
-        backgroundColor: 'rgba(151,187,205,1)',
+        borderColor: window.chartColors.lightBlue,
+        backgroundColor: window.chartColors.lightBlue,
         fill: true,
         data: volumes,
         yAxisID: 'y-axis-2',
@@ -139,19 +150,19 @@ const barChartWithVolumes = (volumes) => {
     labels: Object.values(volumes).map(e => e.date),
     datasets: [
       {
-        label: 'kucoin',
-        backgroundColor: 'rgba(146,64,64,1)',
-        data: Object.values(volumes).map(e => e.kucoinVolume),
+        label: 'others',
+        backgroundColor: window.chartColors.green,
+        data: Object.values(volumes).map(e => e.volume - e.kucoinVolume - e.coinsuperVolume),
       },
       {
         label: 'coinsuper',
-        backgroundColor: 'rgba(46,104,104,1)',
+        backgroundColor: window.chartColors.yellow,
         data: Object.values(volumes).map(e => e.coinsuperVolume),
       },
       {
-        label: 'others',
-        backgroundColor: 'rgba(246,44,44,1)',
-        data: Object.values(volumes).map(e => e.volume - e.kucoinVolume - e.coinsuperVolume),
+        label: 'kucoin',
+        backgroundColor: window.chartColors.orange,
+        data: Object.values(volumes).map(e => e.kucoinVolume),
       },
     ]
   };
