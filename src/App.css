@@ -32,6 +32,10 @@
   margin-left: 10px;
 }
 
+.csvBg {
+  background-color: #eeeeee;
+}
+
 @keyframes App-logo-spin {
   from {
     transform: rotate(0deg);
