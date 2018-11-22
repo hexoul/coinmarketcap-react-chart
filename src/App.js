@@ -15,6 +15,8 @@ import {
 import './App.css';
 import { CloudDownload } from '@material-ui/icons';
 
+const keyMerged = 'Merged';
+
 class App extends React.Component {
   
   data = {
@@ -50,6 +52,7 @@ class App extends React.Component {
 
     //--------------------------------- CSV ---------------------------------//
     // Construct raw data for CSV of market data
+    this.data.csvMarketData[keyMerged] = [];
     this.data.csvMarketData['CMC'] = this.data.origin
       .filter(e => e.msg === constants.gather.cryptoQuote && e.symbol === constants.target.symbol)
       .map(e => { e.market = 'CMC'; return getMarketDataCSV(e); });
@@ -60,8 +63,13 @@ class App extends React.Component {
                 && e.market === market)
         .map(e => getMarketDataCSV(e));
     });
-
+    Object.keys(this.data.csvMarketData).forEach(v => {
+      this.data.csvMarketData[keyMerged] = this.data.csvMarketData[keyMerged].concat(this.data.csvMarketData[v]);
+    });
+    this.data.csvMarketData[keyMerged].sort((a, b) => Date.parse(b.time) - Date.parse(a.time));
+    
     // Construct raw data for CSV of ohlcv
+    this.data.csvOhlcvData[keyMerged] = [];
     constants.target.quotes.forEach(quote => {
       this.data.csvOhlcvData[quote] = this.data.origin
         .filter(e => e.msg === constants.gather.ohlcv
@@ -69,6 +77,10 @@ class App extends React.Component {
                 && e.convert === quote)
         .map(e => getOhlcvCSV(e, this.data.csvMarketData));
     });
+    Object.keys(this.data.csvOhlcvData).forEach(v => {
+      this.data.csvOhlcvData[keyMerged] = this.data.csvOhlcvData[keyMerged].concat(this.data.csvOhlcvData[v]);
+    });
+    this.data.csvOhlcvData[keyMerged].sort((a, b) => Date.parse(b.date) - Date.parse(a.date));
 
     //--------------------------------- Chart ---------------------------------//
     // Construct raw data for price & volume chart
@@ -121,14 +133,14 @@ class App extends React.Component {
 
     // Construct raw data for market data table
     var marketData = [];
-    Object.values(this.data.csvMarketData).forEach(e => {
-      if (e.length > 0) marketData.push(e[0]);
+    Object.keys(this.data.csvMarketData).filter(k => k !== keyMerged).forEach(k => {
+      if (this.data.csvMarketData[k].length > 0) marketData.push(this.data.csvMarketData[k][0]);
     });
     
     // Construct raw data for ohlcv table
     var ohlcvData = [];
-    Object.values(this.data.csvOhlcvData).forEach(e => {
-      if (e.length > 0) ohlcvData.push(e[0]);
+    Object.keys(this.data.csvOhlcvData).filter(k => k !== keyMerged).forEach(k => {
+      if (this.data.csvOhlcvData[k].length > 0) ohlcvData.push(this.data.csvOhlcvData[k][0]);
     });
 
     this.setState({ ready: true, tokenMetric: tokenMetric, marketData: marketData, ohlcvData: ohlcvData });
@@ -291,7 +303,7 @@ class App extends React.Component {
           </Col>
         </Row>
       }
-    </div>
+    </div>;
   }
 
   getChartRender() {
