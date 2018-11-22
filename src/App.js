@@ -13,6 +13,7 @@ import {
 
 // Styles.
 import './App.css';
+import { CloudDownload } from '@material-ui/icons';
 
 class App extends React.Component {
   
@@ -192,7 +193,10 @@ class App extends React.Component {
               filename='token-metric.csv'
               headers={csvHeaders.tokenMetric}
               data={this.data.origin.filter(e => e.msg === constants.gather.tokenMetric && e.symbol === constants.target.symbol)}
-            > Download</CSVLink>
+              className='csv'
+            >
+              <CloudDownload /> Token metric
+            </CSVLink>
           }
         </Col>
       </Row>
@@ -227,7 +231,10 @@ class App extends React.Component {
                 filename={'market-data-' + market + '.csv'}
                 headers={csvHeaders.marketData}
                 data={this.data.csvMarketData[market]}
-              > {market} </CSVLink>
+                className='csv'
+              >
+                <CloudDownload /> {market}
+              </CSVLink>
             })
           }
         </Col>
@@ -262,7 +269,10 @@ class App extends React.Component {
                 filename={'ohlcv-' + quote + '.csv'}
                 headers={csvHeaders.ohlcvData}
                 data={this.data.csvOhlcvData[quote]}
-              > {quote} </CSVLink>
+                className='csv'
+              >
+                <CloudDownload /> {quote}
+              </CSVLink>
             })
           }
         </Col>

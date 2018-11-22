@@ -10,7 +10,7 @@ constants.sourceFile = 'report.log';
 constants.target = {
     symbol: 'META',
     quotes: ['USD', 'BTC', 'ETH'],
-    markets: ['coinsuper', 'kucoin'],
+    markets: ['coinsuper', 'kucoin', 'abcc'],
 };
 
 // About keys

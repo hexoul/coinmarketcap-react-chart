@@ -27,6 +27,11 @@
   height: 100%;
 }
 
+.csv {
+  vertical-align: top;
+  margin-left: 10px;
+}
+
 @keyframes App-logo-spin {
   from {
     transform: rotate(0deg);

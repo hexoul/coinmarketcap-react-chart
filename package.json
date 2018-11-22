@@ -3,6 +3,8 @@
   "version": "1.0.0",
   "private": true,
   "dependencies": {
+    "@material-ui/core": "^3.5.1",
+    "@material-ui/icons": "^3.0.1",
     "antd": "^3.10.1",
     "babel-plugin-import": "^1.9.1",
     "chart.js": "^2.7.3",
