@@ -152,33 +152,37 @@ const barChartWithVolumes = (volumes) => {
       {
         label: 'others',
         backgroundColor: window.chartColors.green,
-        data: Object.values(volumes).map(e => e.volume - e.kucoinVolume - e.coinsuperVolume),
+        data: Object.values(volumes).map(e => toFloat(e.volume) - toFloat(e.kucoinVolume) - toFloat(e.coinsuperVolume)),
       },
       {
         label: 'coinsuper',
         backgroundColor: window.chartColors.yellow,
-        data: Object.values(volumes).map(e => e.coinsuperVolume),
+        data: Object.values(volumes).map(e => toFloat(e.coinsuperVolume)),
       },
       {
         label: 'kucoin',
         backgroundColor: window.chartColors.orange,
-        data: Object.values(volumes).map(e => e.kucoinVolume),
+        data: Object.values(volumes).map(e => toFloat(e.kucoinVolume)),
       },
     ]
   };
 }
 
+const fmtInt = v => v.toLocaleString('en');
+const fmtFloat = v => parseFloat(Number(v).toFixed(8)).toString().replace(/(\d)(?=(\d{3})+\.)/g, '$1,');
+const toFloat = v => parseFloat(v.replace(',',''));
+
 const getMarketDataCSV = e => {
   return {
     category: e.market,
-    usdPrice: Number(e.quote.USD.price).toFixed(8),
-    usdVolume: Number(e.quote.USD.volume_24h).toFixed(8),
+    usdPrice: fmtFloat(e.quote.USD.price),
+    usdVolume: fmtFloat(e.quote.USD.volume_24h),
     usdMarketCap: e.quote.USD.market_cap,
-    ethPrice: Number(e.quote.ETH.price).toFixed(8),
-    ethVolume: Number(e.quote.ETH.volume_24h).toFixed(8),
+    ethPrice: fmtFloat(e.quote.ETH.price),
+    ethVolume: fmtFloat(e.quote.ETH.volume_24h),
     ethMarketCap: e.quote.ETH.market_cap,
-    btcPrice: Number(e.quote.BTC.price).toFixed(8),
-    btcVolume: Number(e.quote.BTC.volume_24h).toFixed(8),
+    btcPrice: fmtFloat(e.quote.BTC.price),
+    btcVolume: fmtFloat(e.quote.BTC.volume_24h),
     btcMarketCap: e.quote.BTC.market_cap,
     time: e.time,
   }
@@ -189,11 +193,11 @@ const getOhlcvCSV = (e, md) => {
   var ret = {
     date: e.ctime.split('T')[0],
     unit: e.convert,
-    open: Number(e.quote.open).toFixed(8),
-    high: Number(e.quote.high).toFixed(8),
-    low: Number(e.quote.low).toFixed(8),
-    close: Number(e.quote.close).toFixed(8),
-    volume: Number(e.quote.volume).toFixed(8),
+    open: fmtFloat(e.quote.open),
+    high: fmtFloat(e.quote.high),
+    low: fmtFloat(e.quote.low),
+    close: fmtFloat(e.quote.close),
+    volume: fmtInt(e.quote.volume),
     marketCap: md[e.convert.toLowerCase() + 'MarketCap'],
   };
   constants.target.markets.forEach(market => {
