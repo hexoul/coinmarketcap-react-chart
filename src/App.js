@@ -221,17 +221,14 @@ class App extends React.Component {
           </Col>
         </Row>
         <br />
-        <Row>
-          <Col span={10}>
-            <Table
-              size='small'
-              pagination={false}
-              rowKey={record => record.symbol}
-              columns={columns.TokenMetric}
-              dataSource={this.state.tokenMetric}
-            />
-          </Col>
-        </Row>
+        <Table
+          size='small'
+          style={{ width: '800px' }}
+          pagination={false}
+          rowKey={record => record.symbol}
+          columns={columns.TokenMetric}
+          dataSource={this.state.tokenMetric}
+        />
       </div>
       }
     </div>
@@ -270,17 +267,14 @@ class App extends React.Component {
           </Col>
         </Row>
         <br />
-        <Row>
-          <Col span={22}>
-            <Table
-              size='small'
-              pagination={false}
-              rowKey={record => record.category}
-              columns={columns.MarketData}
-              dataSource={this.state.marketData}
-            />
-          </Col>
-        </Row>
+        <Table
+          size='small'
+          style={{ width: '1200px' }}
+          pagination={false}
+          rowKey={record => record.category}
+          columns={columns.MarketData}
+          dataSource={this.state.marketData}
+        />
       </div>
       }
     </div>
@@ -318,17 +312,14 @@ class App extends React.Component {
           </Col>
         </Row>
         <br />
-        <Row>
-          <Col span={22}>
-            <Table
-              size='small'
-              pagination={false}
-              rowKey={record => record.unit}
-              columns={columns.Ohlcv}
-              dataSource={this.state.ohlcvData}
-            />
-          </Col>
-        </Row>
+        <Table
+          size='small'
+          style={{ width: '1500px' }}
+          pagination={false}
+          rowKey={record => record.unit}
+          columns={columns.Ohlcv}
+          dataSource={this.state.ohlcvData}
+        />
       </div>
       }
     </div>
@@ -339,7 +330,7 @@ class App extends React.Component {
       <h3>Chart</h3>
       {this.state.ready &&
         <div>
-          <Row>
+          <Row style={{ minWidth: '600px' }}>
             <Col span={23}>
               <Line
                 data={this.data.chart[constants.target.quotes[0]]}
@@ -347,7 +338,7 @@ class App extends React.Component {
               />
             </Col>
           </Row>
-          <Row>
+          <Row style={{ minWidth: '800px' }}>
             <Col span={11}>
               <Line
                 data={this.data.chart['close']}
