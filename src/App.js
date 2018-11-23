@@ -223,7 +223,7 @@ class App extends React.Component {
         <br />
         <Table
           size='small'
-          style={{ width: '800px' }}
+          style={{ minWidth: '500px' }}
           pagination={false}
           rowKey={record => record.symbol}
           columns={columns.TokenMetric}
@@ -269,7 +269,7 @@ class App extends React.Component {
         <br />
         <Table
           size='small'
-          style={{ width: '1200px' }}
+          style={{ minWidth: '1000px' }}
           pagination={false}
           rowKey={record => record.category}
           columns={columns.MarketData}
@@ -314,7 +314,7 @@ class App extends React.Component {
         <br />
         <Table
           size='small'
-          style={{ width: '1500px' }}
+          style={{ minWidth: '1500px' }}
           pagination={false}
           rowKey={record => record.unit}
           columns={columns.Ohlcv}

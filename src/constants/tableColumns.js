@@ -101,7 +101,7 @@ columns.Ohlcv = [
     title: 'Volume',
     dataIndex: 'volume',
     key: 'volume',
-    width: '15%',
+    width: '10%',
   },
   {
     title: 'Coinsuper',
@@ -119,7 +119,7 @@ columns.Ohlcv = [
     title: 'Cap',
     dataIndex: 'marketCap',
     key: 'marketCap',
-    width: '5%',
+    width: '10%',
   }
 ];
 
