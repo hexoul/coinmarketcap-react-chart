@@ -48,7 +48,7 @@ class App extends React.Component {
     if (this.data.origin.length === 0) return;
    
     // Reverse array to descending order for CSV and table
-    this.data.origin.reverse();
+    this.data.origin.sort((a, b) => Date.parse(b.time) - Date.parse(a.time));
 
     //--------------------------------- CSV ---------------------------------//
     // Construct raw data for CSV of market data
@@ -78,6 +78,7 @@ class App extends React.Component {
         .map(e => getOhlcvCSV(e, this.data.csvMarketData));
     });
     Object.keys(this.data.csvOhlcvData).forEach(v => {
+      this.data.csvOhlcvData[v].sort((a, b) => Date.parse(b.date) - Date.parse(a.date));
       this.data.csvOhlcvData[keyMerged] = this.data.csvOhlcvData[keyMerged].concat(this.data.csvOhlcvData[v]);
     });
     this.data.csvOhlcvData[keyMerged].sort((a, b) => Date.parse(b.date) - Date.parse(a.date));
@@ -119,6 +120,7 @@ class App extends React.Component {
     this.data.chart['close'] = lineChartWithCloseVolume(cLabel, cClose, cVolume);
 
     // Construct raw data for market volume chart
+    prevMonday.setDate(prevMonday.getDate() -1);
     var marketVolumes = this.data.csvOhlcvData['USD']
       .filter(e => Date.parse(e.date) >= prevMonday.getTime()
               && Date.parse(e.date) < thisMonday.getTime())
@@ -174,8 +176,9 @@ class App extends React.Component {
       case constants.key.marketData:
         // Market data is composed of both CMC and market
         var marketData = [];
-        Object.values(this.data.csvMarketData).forEach(e => {
-          var found = e.filter(v => Date.parse(v.time) <= searchTime);
+        Object.keys(this.data.csvMarketData).forEach(k => {
+          if (k === keyMerged) return;
+          var found = this.data.csvMarketData[k].filter(v => Date.parse(v.time) <= searchTime);
           if (found.length > 0) marketData.push(found[0]);
         });
         this.setState({ marketData: marketData });
@@ -183,8 +186,9 @@ class App extends React.Component {
       case constants.key.ohlcvData:
         searchTime = Date.parse(this.data.searchDate[target])
         var ohlcvData = [];
-        Object.values(this.data.csvOhlcvData).forEach(e => {
-          var found = e.filter(v => Date.parse(v.date) <= searchTime);
+        Object.keys(this.data.csvOhlcvData).forEach(k => {
+          if (k === keyMerged) return;
+          var found = this.data.csvOhlcvData[k].filter(v => Date.parse(v.date) <= searchTime);
           if (found.length > 0) ohlcvData.push(found[0]);
         });
         this.setState({ ohlcvData: ohlcvData });
@@ -223,7 +227,7 @@ class App extends React.Component {
         <br />
         <Table
           size='small'
-          style={{ minWidth: '500px' }}
+          style={{ minWidth: '500px', maxWidth: '1000px' }}
           pagination={false}
           rowKey={record => record.symbol}
           columns={columns.TokenMetric}

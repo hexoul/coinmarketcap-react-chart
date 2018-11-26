@@ -168,9 +168,9 @@ const barChartWithVolumes = (volumes) => {
   };
 }
 
-const fmtInt = v => v.toLocaleString('en');
-const fmtFloat = v => parseFloat(Number(v).toFixed(8)).toString().replace(/(\d)(?=(\d{3})+\.)/g, '$1,');
-const toFloat = v => parseFloat(v.replace(',',''));
+const fmtInt = v => v ? v.toLocaleString('en') : '0';
+const fmtFloat = v => v ? parseFloat(Number(v).toFixed(8)).toString().replace(/(\d)(?=(\d{3})+\.)/g, '$1,') : 0;
+const toFloat = v => v ? parseFloat(v.replace(',','')) : 0;
 
 const getMarketDataCSV = e => {
   return {
