@@ -207,6 +207,17 @@ const getOhlcvCSV = (e, md) => {
   return ret;
 }
 
+const getBalanceCSV = e => {
+  return {
+    time: e.time,
+    exchange: e.exchange,
+    meta: fmtFloat(e.meta),
+    eth: fmtFloat(e.eth),
+    btc: fmtFloat(e.btc),
+    volume: e.volume,
+  }
+}
+
 export {
   getURL,
   getSource,
@@ -216,5 +227,6 @@ export {
   barChartOptions,
   barChartWithVolumes,
   getMarketDataCSV,
-  getOhlcvCSV
+  getOhlcvCSV,
+  getBalanceCSV
 }

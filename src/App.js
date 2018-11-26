@@ -9,7 +9,7 @@ import {
   getURL, getSource,
   lineChartOptions, lineChartWithPriceVolume, lineChartWithCloseVolume,
   barChartOptions, barChartWithVolumes,
-  getMarketDataCSV, getOhlcvCSV } from './util';
+  getMarketDataCSV, getOhlcvCSV, getBalanceCSV } from './util';
 
 // Styles.
 import './App.css';
@@ -163,6 +163,22 @@ class App extends React.Component {
       this.data.balance.push(JSON.parse(line));
     });
     if (this.data.balance.length === 0) return;
+
+    //--------------------------------- CSV ---------------------------------//
+    // Construct raw data for CSV of balance data
+    this.data.csv.balance[keyMerged] = [];
+    constants.target.markets.forEach(market => {
+      this.data.csv.balance[market] = this.data.balance
+        .filter(e => e.msg === constants.gather.balance
+                && e.exchange === market)
+        .map(e => getBalanceCSV(e));
+      console.log(this.data.csv.balance[market])
+    });
+    Object.keys(this.data.csv.balance).forEach(v => {
+      this.data.csv.balance[v].sort((a, b) => Date.parse(b.time) - Date.parse(a.time));
+      this.data.csv.balance[keyMerged] = this.data.csv.balance[keyMerged].concat(this.data.csv.balance[v]);
+    });
+    this.data.csv.balance[keyMerged].sort((a, b) => Date.parse(b.time) - Date.parse(a.time));
   }
 
   constructor() {
