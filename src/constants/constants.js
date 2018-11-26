@@ -18,6 +18,7 @@ constants.key = {
     tokenMetric: 'metric',
     marketData: 'market',
     ohlcvData: 'ohlcv',
+    balanceData: 'balance',
 };
 
 // About gather
@@ -26,6 +27,7 @@ constants.gather = {
     marketPairs: 'GatherExchangeMarketPairs',
     tokenMetric: 'GatherTokenMetric',
     ohlcv: 'GatherOhlcv',
+    balance: 'GatherBalance',
 }
 
 // About rendering

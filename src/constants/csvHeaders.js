@@ -23,7 +23,15 @@ var csvHeaders = {
         { label: 'Volume', key: 'volume' },
         { label: 'Coinsuper', key: 'coinsuperVolume' },
         { label: 'Kucoin', key: 'kucoinVolume' },
-    ]
+    ],
+    balanceData: [
+        { label: 'Date', key: 'date' },
+        { label: 'Exchange', key: 'exchange' },
+        { label: 'Balance(META)', key: 'meta' },
+        { label: 'Balance(ETH)', key: 'eth' },
+        { label: 'Balance(BTC)', key: 'btc' },
+        { label: 'Volume(USD)', key: 'volume' },
+    ],
 };
 
 export {csvHeaders}

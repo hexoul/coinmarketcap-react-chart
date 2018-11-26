@@ -22,8 +22,11 @@ class App extends React.Component {
   data = {
     origin: [],
     chart: {},
-    csvMarketData: {},
-    csvOhlcvData: {},
+    csv: {
+      market: {},
+      ohlcv: {},
+      balance: {},
+    },
     searchDate: {},
     searchTime: {},
   };
@@ -33,6 +36,7 @@ class App extends React.Component {
     tokenMetric: [],
     marketData: [],
     ohlcvData: [],
+    balanceData: [],
   };
 
   async loadRawData() {
@@ -52,36 +56,36 @@ class App extends React.Component {
 
     //--------------------------------- CSV ---------------------------------//
     // Construct raw data for CSV of market data
-    this.data.csvMarketData[keyMerged] = [];
-    this.data.csvMarketData['CMC'] = this.data.origin
+    this.data.csv.market[keyMerged] = [];
+    this.data.csv.market['CMC'] = this.data.origin
       .filter(e => e.msg === constants.gather.cryptoQuote && e.symbol === constants.target.symbol)
       .map(e => { e.market = 'CMC'; return getMarketDataCSV(e); });
     constants.target.markets.forEach(market => {
-      this.data.csvMarketData[market] = this.data.origin
+      this.data.csv.market[market] = this.data.origin
         .filter(e => e.msg === constants.gather.marketPairs
                 && e.symbol === constants.target.symbol
                 && e.market === market)
         .map(e => getMarketDataCSV(e));
     });
-    Object.keys(this.data.csvMarketData).forEach(v => {
-      this.data.csvMarketData[keyMerged] = this.data.csvMarketData[keyMerged].concat(this.data.csvMarketData[v]);
+    Object.keys(this.data.csv.market).forEach(v => {
+      this.data.csv.market[keyMerged] = this.data.csv.market[keyMerged].concat(this.data.csv.market[v]);
     });
-    this.data.csvMarketData[keyMerged].sort((a, b) => Date.parse(b.time) - Date.parse(a.time));
+    this.data.csv.market[keyMerged].sort((a, b) => Date.parse(b.time) - Date.parse(a.time));
     
     // Construct raw data for CSV of ohlcv
-    this.data.csvOhlcvData[keyMerged] = [];
+    this.data.csv.ohlcv[keyMerged] = [];
     constants.target.quotes.forEach(quote => {
-      this.data.csvOhlcvData[quote] = this.data.origin
+      this.data.csv.ohlcv[quote] = this.data.origin
         .filter(e => e.msg === constants.gather.ohlcv
                 && e.symbol === constants.target.symbol
                 && e.convert === quote)
-        .map(e => getOhlcvCSV(e, this.data.csvMarketData));
+        .map(e => getOhlcvCSV(e, this.data.csv.market));
     });
-    Object.keys(this.data.csvOhlcvData).forEach(v => {
-      this.data.csvOhlcvData[v].sort((a, b) => Date.parse(b.date) - Date.parse(a.date));
-      this.data.csvOhlcvData[keyMerged] = this.data.csvOhlcvData[keyMerged].concat(this.data.csvOhlcvData[v]);
+    Object.keys(this.data.csv.ohlcv).forEach(v => {
+      this.data.csv.ohlcv[v].sort((a, b) => Date.parse(b.date) - Date.parse(a.date));
+      this.data.csv.ohlcv[keyMerged] = this.data.csv.ohlcv[keyMerged].concat(this.data.csv.ohlcv[v]);
     });
-    this.data.csvOhlcvData[keyMerged].sort((a, b) => Date.parse(b.date) - Date.parse(a.date));
+    this.data.csv.ohlcv[keyMerged].sort((a, b) => Date.parse(b.date) - Date.parse(a.date));
 
     //--------------------------------- Chart ---------------------------------//
     // Construct raw data for price & volume chart
@@ -121,7 +125,7 @@ class App extends React.Component {
 
     // Construct raw data for market volume chart
     prevMonday.setDate(prevMonday.getDate() -1);
-    var marketVolumes = this.data.csvOhlcvData['USD']
+    var marketVolumes = this.data.csv.ohlcv['USD']
       .filter(e => Date.parse(e.date) >= prevMonday.getTime()
               && Date.parse(e.date) < thisMonday.getTime())
       .reverse();
@@ -135,14 +139,14 @@ class App extends React.Component {
 
     // Construct raw data for market data table
     var marketData = [];
-    Object.keys(this.data.csvMarketData).filter(k => k !== keyMerged).forEach(k => {
-      if (this.data.csvMarketData[k].length > 0) marketData.push(this.data.csvMarketData[k][0]);
+    Object.keys(this.data.csv.market).filter(k => k !== keyMerged).forEach(k => {
+      if (this.data.csv.market[k].length > 0) marketData.push(this.data.csv.market[k][0]);
     });
     
     // Construct raw data for ohlcv table
     var ohlcvData = [];
-    Object.keys(this.data.csvOhlcvData).filter(k => k !== keyMerged).forEach(k => {
-      if (this.data.csvOhlcvData[k].length > 0) ohlcvData.push(this.data.csvOhlcvData[k][0]);
+    Object.keys(this.data.csv.ohlcv).filter(k => k !== keyMerged).forEach(k => {
+      if (this.data.csv.ohlcv[k].length > 0) ohlcvData.push(this.data.csv.ohlcv[k][0]);
     });
 
     this.setState({ ready: true, tokenMetric: tokenMetric, marketData: marketData, ohlcvData: ohlcvData });
@@ -176,9 +180,9 @@ class App extends React.Component {
       case constants.key.marketData:
         // Market data is composed of both CMC and market
         var marketData = [];
-        Object.keys(this.data.csvMarketData).forEach(k => {
+        Object.keys(this.data.csv.market).forEach(k => {
           if (k === keyMerged) return;
-          var found = this.data.csvMarketData[k].filter(v => Date.parse(v.time) <= searchTime);
+          var found = this.data.csv.market[k].filter(v => Date.parse(v.time) <= searchTime);
           if (found.length > 0) marketData.push(found[0]);
         });
         this.setState({ marketData: marketData });
@@ -186,9 +190,9 @@ class App extends React.Component {
       case constants.key.ohlcvData:
         searchTime = Date.parse(this.data.searchDate[target])
         var ohlcvData = [];
-        Object.keys(this.data.csvOhlcvData).forEach(k => {
+        Object.keys(this.data.csv.ohlcv).forEach(k => {
           if (k === keyMerged) return;
-          var found = this.data.csvOhlcvData[k].filter(v => Date.parse(v.date) <= searchTime);
+          var found = this.data.csv.ohlcv[k].filter(v => Date.parse(v.date) <= searchTime);
           if (found.length > 0) ohlcvData.push(found[0]);
         });
         this.setState({ ohlcvData: ohlcvData });
@@ -256,12 +260,12 @@ class App extends React.Component {
           </Col>
           <Col span={20} offset={1}>
           {
-            Object.keys(this.data.csvMarketData).map(market => {
+            Object.keys(this.data.csv.market).map(market => {
               return <CSVLink
                 key={market}
                 filename={'market-data-' + market + '.csv'}
                 headers={csvHeaders.marketData}
-                data={this.data.csvMarketData[market]}
+                data={this.data.csv.market[market]}
                 className='csv'
               >
                 <CloudDownload /> {market}
@@ -301,12 +305,12 @@ class App extends React.Component {
           </Col>
           <Col span={20} offset={1}>
           {
-            Object.keys(this.data.csvOhlcvData).map(quote => {
+            Object.keys(this.data.csv.ohlcv).map(quote => {
               return <CSVLink
                 key={quote}
                 filename={'ohlcv-' + quote + '.csv'}
                 headers={csvHeaders.ohlcvData}
-                data={this.data.csvOhlcvData[quote]}
+                data={this.data.csv.ohlcv[quote]}
                 className='csv'
               >
                 <CloudDownload /> {quote}
@@ -323,6 +327,51 @@ class App extends React.Component {
           rowKey={record => record.unit}
           columns={columns.Ohlcv}
           dataSource={this.state.ohlcvData}
+        />
+      </div>
+      }
+    </div>
+  }
+
+  getBalanceRender() {
+    return <div>
+      {this.state.ready &&
+      <div>
+        <Row justify='center' type='flex'>
+          <Col span={4}><h3>Balance</h3></Col>
+          <Col span={20}>
+            <DatePicker format='YYYY/MM/DD' onChange={(d, ds) => this.onSearchByTime(constants.key.balanceData, true, ds)} />
+          </Col>
+        </Row>
+        <br />
+        <Row justify='center' type='flex' className='csvBg'>
+          <Col span={2}>
+            CSV Download:
+          </Col>
+          <Col span={20} offset={1}>
+          {
+            Object.keys(this.data.csv.balance).map(quote => {
+              return <CSVLink
+                key={quote}
+                filename={'balance-' + quote + '.csv'}
+                headers={csvHeaders.balanceData}
+                data={this.data.csv.balance[quote]}
+                className='csv'
+              >
+                <CloudDownload /> {quote}
+              </CSVLink>
+            })
+          }
+          </Col>
+        </Row>
+        <br />
+        <Table
+          size='small'
+          style={{ minWidth: '1000px' }}
+          pagination={false}
+          rowKey={record => record.unit}
+          columns={columns.Balance}
+          dataSource={this.state.balanceData}
         />
       </div>
       }
@@ -375,6 +424,8 @@ class App extends React.Component {
               {this.getMarketDataRender()}
               <br />
               {this.getOhlcvRender()}
+              <br />
+              {this.getBalanceRender()}
               <br />
               {this.getChartRender()}
             </div>

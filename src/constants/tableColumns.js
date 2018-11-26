@@ -123,4 +123,43 @@ columns.Ohlcv = [
   }
 ];
 
+columns.Balance = [
+  {
+    title: 'Date',
+    dataIndex: 'date',
+    key: 'date',
+    width: '10%',
+  },
+  {
+    title: 'Exchange',
+    dataIndex: 'exchange',
+    key: 'exchange',
+    width: '5%',
+  },
+  {
+    title: 'Balance(META)',
+    dataIndex: 'meta',
+    key: 'meta',
+    width: '15%',
+  },
+  {
+    title: 'Balance(ETH)',
+    dataIndex: 'eth',
+    key: 'eth',
+    width: '15%',
+  },
+  {
+    title: 'Balance(BTC)',
+    dataIndex: 'btc',
+    key: 'btc',
+    width: '15%',
+  },
+  {
+    title: 'Volume(USD)',
+    dataIndex: 'volume',
+    key: 'volume',
+    width: '30%',
+  }
+];
+
 export {columns}
