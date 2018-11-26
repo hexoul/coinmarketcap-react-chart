@@ -21,6 +21,7 @@ class App extends React.Component {
   
   data = {
     origin: [],
+    balance: [],
     chart: {},
     csv: {
       market: {},
@@ -39,12 +40,12 @@ class App extends React.Component {
     balanceData: [],
   };
 
-  async loadRawData() {
+  async loadReport() {
     this.data.origin = [];
     this.data.chart = {};
     
     // Get source from remote repo
-    let ret = await getSource();
+    let ret = await getSource('report');
     ret.split('\n').forEach(line => {
       if (! line) return;
       this.data.origin.push(JSON.parse(line));
@@ -152,11 +153,25 @@ class App extends React.Component {
     this.setState({ ready: true, tokenMetric: tokenMetric, marketData: marketData, ohlcvData: ohlcvData });
   }
 
+  async loadBalance() {
+    this.data.balance = [];
+
+    // Get source from remote repo
+    let ret = await getSource('balance');
+    ret.split('\n').forEach(line => {
+      if (! line) return;
+      this.data.balance.push(JSON.parse(line));
+    });
+    if (this.data.balance.length === 0) return;
+  }
+
   constructor() {
     super();
-    this.loadRawData();
+    this.loadReport();
+    this.loadBalance();
     this.interval = setInterval(() => {
-      this.loadRawData();
+      this.loadReport();
+      this.loadBalance();
     }, constants.dataUpdatePeriod);
   }
 
@@ -437,7 +452,7 @@ class App extends React.Component {
           }
         </Layout.Content>
         <Layout.Footer>
-          <h3><a href={getURL()}>Raw data</a></h3>
+          <h3>Raw data: <a href={getURL('report')}>Report</a> / <a href={getURL('balance')}>Balance</a></h3>
           <center>coinmarketcap-react-chart ©2018 Created by hexoul</center>
         </Layout.Footer>
       </Layout>

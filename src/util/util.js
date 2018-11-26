@@ -11,14 +11,14 @@ window.chartColors = {
 	grey: 'rgb(201, 203, 207)'
 };
 
-const getURL = () => {
+const getURL = (name) => {
   return `https://raw.githubusercontent.com/${constants.organization}/${constants.repoName}/${constants.branch}/${
-    constants.sourceFile
+    constants.sourceFile[name]
   }`
 }
 
-const getSource = () => {
-  return fetch(getURL()).then(response => response.text());
+const getSource = (name) => {
+  return fetch(getURL(name)).then(response => response.text());
 }
 
 const lineChartOptions = (title) => {

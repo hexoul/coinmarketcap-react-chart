@@ -4,7 +4,10 @@ let constants = {};
 constants.organization = 'hexoul';
 constants.repoName = 'go-cryptoinfo-gather';
 constants.branch = 'master';
-constants.sourceFile = 'report.log';
+constants.sourceFile = {
+    report: 'report.log',
+    balance: 'balance.log',
+};
 
 // About target
 constants.target = {
