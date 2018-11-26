@@ -172,7 +172,6 @@ class App extends React.Component {
         .filter(e => e.msg === constants.gather.balance
                 && e.exchange === market)
         .map(e => getBalanceCSV(e));
-      console.log(this.data.csv.balance[market])
     });
     Object.keys(this.data.csv.balance).forEach(v => {
       this.data.csv.balance[v].sort((a, b) => Date.parse(b.time) - Date.parse(a.time));
@@ -236,6 +235,15 @@ class App extends React.Component {
           if (found.length > 0) ohlcvData.push(found[0]);
         });
         this.setState({ ohlcvData: ohlcvData });
+        break;
+      case constants.key.balanceData:
+        var balanceData = [];
+        Object.keys(this.data.csv.balance).forEach(k => {
+          if (k === keyMerged) return;
+          var found = this.data.csv.balance[k].filter(v => Date.parse(v.time) <= searchTime);
+          if (found.length > 0) balanceData.push(found[0]);
+        });
+        this.setState({ balanceData: balanceData });
         break;
       default: break;
     }
@@ -410,7 +418,7 @@ class App extends React.Component {
           size='small'
           style={{ minWidth: '1000px' }}
           pagination={false}
-          rowKey={record => record.unit}
+          rowKey={record => record.exchange}
           columns={columns.Balance}
           dataSource={this.state.balanceData}
         />
