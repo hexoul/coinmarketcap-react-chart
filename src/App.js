@@ -179,6 +179,15 @@ class App extends React.Component {
       this.data.csv.balance[keyMerged] = this.data.csv.balance[keyMerged].concat(this.data.csv.balance[v]);
     });
     this.data.csv.balance[keyMerged].sort((a, b) => Date.parse(b.time) - Date.parse(a.time));
+
+    //--------------------------------- Table ---------------------------------//
+    // Construct raw data for balance table
+    var balanceData = [];
+    Object.keys(this.data.csv.balance).filter(k => k !== keyMerged).forEach(k => {
+      if (this.data.csv.balance[k].length > 0) balanceData.push(this.data.csv.balance[k][0]);
+    });
+
+    this.setState({ balanceData: balanceData });
   }
 
   constructor() {
@@ -372,6 +381,7 @@ class App extends React.Component {
           <Col span={4}><h3>Balance</h3></Col>
           <Col span={20}>
             <DatePicker format='YYYY/MM/DD' onChange={(d, ds) => this.onSearchByTime(constants.key.balanceData, true, ds)} />
+            {' '}<TimePicker format='HH:mm:ss' onChange={(t, ts) => this.onSearchByTime(constants.key.balanceData, false, ts)} />
           </Col>
         </Row>
         <br />

@@ -124,12 +124,12 @@ columns.Ohlcv = [
 ];
 
 columns.Balance = [
-  {
-    title: 'Date',
-    dataIndex: 'date',
-    key: 'date',
-    width: '10%',
-  },
+  // {
+  //   title: 'Date',
+  //   dataIndex: 'time',
+  //   key: 'time',
+  //   width: '10%',
+  // },
   {
     title: 'Exchange',
     dataIndex: 'exchange',
