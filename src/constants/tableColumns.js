@@ -56,8 +56,8 @@ columns.MarketData = [
     title: 'Volume(USD)',
     dataIndex: 'usdVolume',
     key: 'usdVolume',
-    width: '30%',
-  }
+    width: '20%',
+  },
 ];
 
 columns.Ohlcv = [
@@ -107,20 +107,20 @@ columns.Ohlcv = [
     title: 'Coinsuper',
     dataIndex: 'coinsuperVolume',
     key: 'coinsuperVolume',
-    width: '15%',
+    width: '10%',
   },
   {
     title: 'Kucoin',
     dataIndex: 'kucoinVolume',
     key: 'kucoinVolume',
-    width: '15%',
+    width: '10%',
   },
   {
     title: 'Cap',
     dataIndex: 'marketCap',
     key: 'marketCap',
-    width: '10%',
-  }
+    width: '15%',
+  },
 ];
 
 columns.Balance = [

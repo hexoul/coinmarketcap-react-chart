@@ -21,8 +21,9 @@ var csvHeaders = {
         { label: 'Low', key: 'low' },
         { label: 'Close', key: 'close' },
         { label: 'Volume', key: 'volume' },
-        { label: 'Coinsuper', key: 'coinsuperVolume' },
-        { label: 'Kucoin', key: 'kucoinVolume' },
+        { label: 'Volume (Coinsuper)', key: 'coinsuperVolume' },
+        { label: 'Volume (Kucoin)', key: 'kucoinVolume' },
+        { label: 'Market Cap', key: 'marketCap' },
     ],
     balanceData: [
         { label: 'Date', key: 'time' },

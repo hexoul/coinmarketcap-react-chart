@@ -198,8 +198,10 @@ const getOhlcvCSV = (e, md) => {
     low: fmtFloat(e.quote.low),
     close: fmtFloat(e.quote.close),
     volume: fmtInt(e.quote.volume),
-    marketCap: md[e.convert.toLowerCase() + 'MarketCap'],
   };
+  let capFound = md['CMC'].filter(v => Date.parse(v.time) <= targetTime);
+  if (capFound && capFound.length) ret.marketCap = fmtFloat(capFound[0][e.convert.toLowerCase() + 'MarketCap']);
+
   constants.target.markets.forEach(market => {
     let found = md[market].filter(v => Date.parse(v.time) <= targetTime);
     if (found && found.length) ret[market + 'Volume'] = found[0][e.convert.toLowerCase() + 'Volume'];

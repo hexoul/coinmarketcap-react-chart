@@ -109,8 +109,10 @@ class App extends React.Component {
     var cLabel = [], cClose = [], cVolume = [];
     var prevMonday = new Date();
     prevMonday.setDate(prevMonday.getDate() - 7 - (prevMonday.getDay() + 6) % 7);
+    prevMonday.setMinutes(prevMonday.getMinutes() + prevMonday.getTimezoneOffset());
     var thisMonday = new Date();
     thisMonday.setDate(thisMonday.getDate() - (thisMonday.getDay() + 6) % 7);
+    thisMonday.setMinutes(thisMonday.getMinutes() + thisMonday.getTimezoneOffset());
     this.data.origin
       .filter(e => e.msg === constants.gather.ohlcv
               && Date.parse(e.ctime) >= prevMonday.getTime()
@@ -124,13 +126,12 @@ class App extends React.Component {
       });
     this.data.chart['close'] = lineChartWithCloseVolume(cLabel, cClose, cVolume);
 
-    // Construct raw data for market volume chart
-    prevMonday.setDate(prevMonday.getDate() -1);
+    // Construct raw data for market volume chart    
+    console.log(prevMonday.toDateString(), prevMonday.toTimeString())
     var marketVolumes = this.data.csv.ohlcv['USD']
       .filter(e => Date.parse(e.date) >= prevMonday.getTime()
               && Date.parse(e.date) < thisMonday.getTime())
       .reverse();
-
     this.data.chart['market'] = barChartWithVolumes(marketVolumes);
     
     //--------------------------------- Table ---------------------------------//
@@ -150,7 +151,7 @@ class App extends React.Component {
       if (this.data.csv.ohlcv[k].length > 0) ohlcvData.push(this.data.csv.ohlcv[k][0]);
     });
 
-    this.setState({ ready: true, tokenMetric: tokenMetric, marketData: marketData, ohlcvData: ohlcvData });
+    this.setState({ tokenMetric: tokenMetric, marketData: marketData, ohlcvData: ohlcvData });
   }
 
   async loadBalance() {
@@ -189,10 +190,8 @@ class App extends React.Component {
     this.setState({ balanceData: balanceData });
   }
 
-  constructor() {
-    super();
-    this.loadReport();
-    this.loadBalance();
+  componentWillMount() {
+    Promise.all([this.loadReport(), this.loadBalance()]).then(() => this.setState({ ready: true }));
     this.interval = setInterval(() => {
       this.loadReport();
       this.loadBalance();
