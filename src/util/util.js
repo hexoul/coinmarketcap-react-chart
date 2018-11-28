@@ -152,7 +152,7 @@ const barChartWithVolumes = (volumes) => {
       {
         label: 'others',
         backgroundColor: window.chartColors.green,
-        data: Object.values(volumes).map(e => toFloat(e.volume) - toFloat(e.kucoinVolume) - toFloat(e.coinsuperVolume)),
+        data: Object.values(volumes).map(e => toFloat(e.volume) - toFloat(e.kucoinVolume) - toFloat(e.coinsuperVolume) - toFloat(e.abccVolume)),
       },
       {
         label: 'coinsuper',
@@ -163,6 +163,11 @@ const barChartWithVolumes = (volumes) => {
         label: 'kucoin',
         backgroundColor: window.chartColors.orange,
         data: Object.values(volumes).map(e => toFloat(e.kucoinVolume)),
+      },
+      {
+        label: 'abcc',
+        backgroundColor: window.chartColors.blue,
+        data: Object.values(volumes).map(e => toFloat(e.abccVolume)),
       },
     ]
   };

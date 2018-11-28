@@ -77,25 +77,25 @@ columns.Ohlcv = [
     title: 'Open',
     dataIndex: 'open',
     key: 'open',
-    width: '10%',
+    width: '7%',
   },
   {
     title: 'High',
     dataIndex: 'high',
     key: 'high',
-    width: '10%',
+    width: '7%',
   },
   {
     title: 'Low',
     dataIndex: 'low',
     key: 'low',
-    width: '10%',
+    width: '7%',
   },
   {
     title: 'Close',
     dataIndex: 'close',
     key: 'close',
-    width: '10%',
+    width: '7%',
   },
   {
     title: 'Volume',
@@ -113,6 +113,12 @@ columns.Ohlcv = [
     title: 'Kucoin',
     dataIndex: 'kucoinVolume',
     key: 'kucoinVolume',
+    width: '10%',
+  },
+  {
+    title: 'Abcc',
+    dataIndex: 'abccVolume',
+    key: 'abccVolume',
     width: '10%',
   },
   {

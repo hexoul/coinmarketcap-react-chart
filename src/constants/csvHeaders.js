@@ -23,6 +23,7 @@ var csvHeaders = {
         { label: 'Volume', key: 'volume' },
         { label: 'Volume (Coinsuper)', key: 'coinsuperVolume' },
         { label: 'Volume (Kucoin)', key: 'kucoinVolume' },
+        { label: 'Volume (Abcc)', key: 'abccVolume' },
         { label: 'Market Cap', key: 'marketCap' },
     ],
     balanceData: [

@@ -126,8 +126,7 @@ class App extends React.Component {
       });
     this.data.chart['close'] = lineChartWithCloseVolume(cLabel, cClose, cVolume);
 
-    // Construct raw data for market volume chart    
-    console.log(prevMonday.toDateString(), prevMonday.toTimeString())
+    // Construct raw data for market volume chart
     var marketVolumes = this.data.csv.ohlcv['USD']
       .filter(e => Date.parse(e.date) >= prevMonday.getTime()
               && Date.parse(e.date) < thisMonday.getTime())
@@ -193,8 +192,8 @@ class App extends React.Component {
   componentWillMount() {
     Promise.all([this.loadReport(), this.loadBalance()]).then(() => this.setState({ ready: true }));
     this.interval = setInterval(() => {
-      this.loadReport();
-      this.loadBalance();
+      this.setState({ ready: false });
+      Promise.all([this.loadReport(), this.loadBalance()]).then(() => this.setState({ ready: true }));
     }, constants.dataUpdatePeriod);
   }
 
