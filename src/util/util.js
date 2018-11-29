@@ -196,6 +196,7 @@ const getMarketDataCSV = e => {
 const getOhlcvCSV = (e, md) => {
   let targetTime = Date.parse(e.ctime);
   var ret = {
+    ctime: e.ctime,
     date: e.ctime.split('T')[0],
     unit: e.convert,
     open: fmtFloat(e.quote.open),

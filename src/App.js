@@ -109,9 +109,11 @@ class App extends React.Component {
     var cLabel = [], cClose = [], cVolume = [];
     var prevMonday = new Date();
     prevMonday.setDate(prevMonday.getDate() - 7 - (prevMonday.getDay() + 6) % 7);
+    prevMonday = new Date(prevMonday.getFullYear(), prevMonday.getMonth(), prevMonday.getDate(), 0, 0, 0);
     prevMonday.setMinutes(prevMonday.getMinutes() + prevMonday.getTimezoneOffset());
     var thisMonday = new Date();
     thisMonday.setDate(thisMonday.getDate() - (thisMonday.getDay() + 6) % 7);
+    thisMonday = new Date(thisMonday.getFullYear(), thisMonday.getMonth(), thisMonday.getDate(), 0, 0, 0);
     thisMonday.setMinutes(thisMonday.getMinutes() + thisMonday.getTimezoneOffset());
     this.data.origin
       .filter(e => e.msg === constants.gather.ohlcv
@@ -128,8 +130,8 @@ class App extends React.Component {
 
     // Construct raw data for market volume chart
     var marketVolumes = this.data.csv.ohlcv['USD']
-      .filter(e => Date.parse(e.date) >= prevMonday.getTime()
-              && Date.parse(e.date) < thisMonday.getTime())
+      .filter(e => Date.parse(e.ctime) >= prevMonday.getTime()
+              && Date.parse(e.ctime) < thisMonday.getTime())
       .reverse();
     this.data.chart['market'] = barChartWithVolumes(marketVolumes);
     
