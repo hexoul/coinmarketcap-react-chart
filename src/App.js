@@ -68,9 +68,7 @@ class App extends React.Component {
                 && e.symbol === constants.target.symbol
                 && e.market === market)
         .map(e => getMarketDataCSV(e));
-    });
-    Object.keys(this.data.csv.market).forEach(v => {
-      this.data.csv.market[keyMerged] = this.data.csv.market[keyMerged].concat(this.data.csv.market[v]);
+      this.data.csv.market[keyMerged] = this.data.csv.market[keyMerged].concat(this.data.csv.market[market]);
     });
     this.data.csv.market[keyMerged].sort((a, b) => Date.parse(b.time) - Date.parse(a.time));
     
@@ -81,11 +79,9 @@ class App extends React.Component {
         .filter(e => e.msg === constants.gather.ohlcv
                 && e.symbol === constants.target.symbol
                 && e.convert === quote)
-        .map(e => getOhlcvCSV(e, this.data.csv.market));
-    });
-    Object.keys(this.data.csv.ohlcv).forEach(v => {
-      this.data.csv.ohlcv[v].sort((a, b) => Date.parse(b.date) - Date.parse(a.date));
-      this.data.csv.ohlcv[keyMerged] = this.data.csv.ohlcv[keyMerged].concat(this.data.csv.ohlcv[v]);
+        .map(e => getOhlcvCSV(e, this.data.csv.market))
+        .sort((a, b) => Date.parse(b.date) - Date.parse(a.date));
+      this.data.csv.ohlcv[keyMerged] = this.data.csv.ohlcv[keyMerged].concat(this.data.csv.ohlcv[quote]);
     });
     this.data.csv.ohlcv[keyMerged].sort((a, b) => Date.parse(b.date) - Date.parse(a.date));
 
@@ -96,12 +92,12 @@ class App extends React.Component {
     this.data.origin
       .filter(e => e.msg === constants.gather.cryptoQuote && e.symbol === constants.target.symbol)
       .forEach(e => {
-      constants.target.quotes.forEach(v => {
-        labels[v].push(e.time);
-        prices[v].push(e.quote[v].price);
-        volumes[v].push(e.quote[v].volume_24h);
+        constants.target.quotes.forEach(v => {
+          labels[v].push(e.time);
+          prices[v].push(e.quote[v].price);
+          volumes[v].push(e.quote[v].volume_24h);
+        });
       });
-    });
     constants.target.quotes.forEach(v => {
       this.data.chart[v] = lineChartWithPriceVolume(labels[v], prices[v], volumes[v]);
     });
@@ -174,18 +170,16 @@ class App extends React.Component {
       this.data.csv.balance[market] = this.data.balance
         .filter(e => e.msg === constants.gather.balance
                 && e.exchange === market)
-        .map(e => getBalanceCSV(e));
-    });
-    Object.keys(this.data.csv.balance).forEach(v => {
-      this.data.csv.balance[v].sort((a, b) => Date.parse(b.time) - Date.parse(a.time));
-      this.data.csv.balance[keyMerged] = this.data.csv.balance[keyMerged].concat(this.data.csv.balance[v]);
+        .map(e => getBalanceCSV(e))
+        .sort((a, b) => Date.parse(b.time) - Date.parse(a.time));
+      this.data.csv.balance[keyMerged] = this.data.csv.balance[keyMerged].concat(this.data.csv.balance[market]);
     });
     this.data.csv.balance[keyMerged].sort((a, b) => Date.parse(b.time) - Date.parse(a.time));
 
     //--------------------------------- Table ---------------------------------//
     // Construct raw data for balance table
     var balanceData = [];
-    Object.keys(this.data.csv.balance).filter(k => k !== keyMerged).forEach(k => {
+    constants.target.markets.forEach(k => {
       if (this.data.csv.balance[k].length > 0) balanceData.push(this.data.csv.balance[k][0]);
     });
 
@@ -205,7 +199,7 @@ class App extends React.Component {
 
     this.data.trade = this.data.trade.filter(e => e.msg === constants.gather.trade);
 
-    Object.keys(this.data.csv.balance).filter(k => k !== keyMerged).forEach(k => {
+    constants.target.markets.forEach(k => {
       this.data.csv.balance[k].map(v => {
         let time = new Date(v.time).getTime();
         let prev24h = new Date(v.time);
@@ -222,7 +216,7 @@ class App extends React.Component {
     //--------------------------------- Table ---------------------------------//
     // Construct raw data for balance table
     var balanceData = [];
-    Object.keys(this.data.csv.balance).filter(k => k !== keyMerged).forEach(k => {
+    constants.target.markets.forEach(k => {
       if (this.data.csv.balance[k].length > 0) balanceData.push(this.data.csv.balance[k][0]);
     });
 
