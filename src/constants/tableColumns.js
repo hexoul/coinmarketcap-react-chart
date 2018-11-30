@@ -38,24 +38,30 @@ columns.MarketData = [
     title: 'USD Price',
     dataIndex: 'usdPrice',
     key: 'usdPrice',
-    width: '20%',
+    width: '10%',
   },
   {
     title: 'ETH Price',
     dataIndex: 'ethPrice',
     key: 'ethPrice',
-    width: '20%',
+    width: '10%',
   },
   {
     title: 'BTC Price',
     dataIndex: 'btcPrice',
     key: 'btcPrice',
-    width: '20%',
+    width: '10%',
   },
   {
     title: 'Volume(USD)',
     dataIndex: 'usdVolume',
     key: 'usdVolume',
+    width: '20%',
+  },
+  {
+    title: 'Volume(ETH)',
+    dataIndex: 'ethVolume',
+    key: 'ethVolume',
     width: '20%',
   },
 ];
@@ -161,7 +167,7 @@ columns.Balance = [
     width: '15%',
   },
   {
-    title: 'Volume(USD)',
+    title: 'Volume(ETH)',
     dataIndex: 'volume',
     key: 'volume',
     width: '30%',

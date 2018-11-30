@@ -7,6 +7,7 @@ constants.branch = 'master';
 constants.sourceFile = {
     report: 'report.log',
     balance: 'balance.log',
+    trade: 'trade.log',
 };
 
 // About target
@@ -31,6 +32,7 @@ constants.gather = {
     tokenMetric: 'GatherTokenMetric',
     ohlcv: 'GatherOhlcv',
     balance: 'GatherBalance',
+    trade: 'GatherTrades',
 }
 
 // About rendering

@@ -22,6 +22,7 @@ class App extends React.Component {
   data = {
     origin: [],
     balance: [],
+    trade: [],
     chart: {},
     csv: {
       market: {},
@@ -188,14 +189,45 @@ class App extends React.Component {
       if (this.data.csv.balance[k].length > 0) balanceData.push(this.data.csv.balance[k][0]);
     });
 
-    this.setState({ balanceData: balanceData });
+    this.setState({ balanceData: balanceData }, () => this.loadTrade());
+  }
+
+  async loadTrade() {
+    this.data.trade = [];
+
+    // Get source from remote repo
+    let ret = await getSource('trade');
+    ret.split('\n').forEach(line => {
+      if (! line) return;
+      this.data.trade.push(JSON.parse(line));
+    });
+    if (this.data.trade.length === 0) return;
+
+    this.data.trade = this.data.trade.filter(e => e.msg === constants.gather.trade);
+
+    Object.keys(this.data.csv.balance).filter(k => k !== keyMerged).forEach(k => {
+      this.data.csv.balance[k].map(v => {
+        let time = new Date(v.time).getTime();
+        let prev24h = new Date(v.time);
+        prev24h = prev24h.setDate(prev24h.getDate() -1);
+        v.volume = this.data.trade
+                    .filter(e => e.exchange === k
+                            && Date.parse(e.createdAt) >= prev24h
+                            && Date.parse(e.createdAt) <= time)
+                    .reduce((acc, e) => acc + e.volume/2, 0);
+        return v;
+      });
+    });
   }
 
   componentWillMount() {
-    Promise.all([this.loadReport(), this.loadBalance()]).then(() => this.setState({ ready: true }));
+    var asyncLoading = [this.loadReport(), this.loadBalance()];
+    Promise.all(asyncLoading).then(() => this.setState({ ready: true }));
+
+    // Load raw data periodically
     this.interval = setInterval(() => {
       this.setState({ ready: false });
-      Promise.all([this.loadReport(), this.loadBalance()]).then(() => this.setState({ ready: true }));
+      Promise.all(asyncLoading).then(() => this.setState({ ready: true }));
     }, constants.dataUpdatePeriod);
   }
 
@@ -486,7 +518,7 @@ class App extends React.Component {
           }
         </Layout.Content>
         <Layout.Footer>
-          <h3>Raw data: <a href={getURL('report')}>Report</a> / <a href={getURL('balance')}>Balance</a></h3>
+          <h3>Raw data: <a href={getURL('report')}>Report</a> / <a href={getURL('balance')}>Balance</a> / <a href={getURL('trade')}>Trade</a></h3>
           <center>coinmarketcap-react-chart ©2018 Created by hexoul</center>
         </Layout.Footer>
       </Layout>
