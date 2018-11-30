@@ -218,6 +218,15 @@ class App extends React.Component {
         return v;
       });
     });
+
+    //--------------------------------- Table ---------------------------------//
+    // Construct raw data for balance table
+    var balanceData = [];
+    Object.keys(this.data.csv.balance).filter(k => k !== keyMerged).forEach(k => {
+      if (this.data.csv.balance[k].length > 0) balanceData.push(this.data.csv.balance[k][0]);
+    });
+
+    this.setState({ balanceData: balanceData });
   }
 
   componentWillMount() {
