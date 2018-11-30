@@ -214,7 +214,7 @@ class App extends React.Component {
                     .filter(e => e.exchange === k
                             && Date.parse(e.createdAt) >= prev24h
                             && Date.parse(e.createdAt) <= time)
-                    .reduce((acc, e) => acc + e.volume/2, 0);
+                    .reduce((acc, e) => acc + e.volume, 0);
         return v;
       });
     });
