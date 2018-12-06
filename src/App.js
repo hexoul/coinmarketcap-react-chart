@@ -1,5 +1,5 @@
 import React from 'react';
-import { Layout, Table, Row, Col, DatePicker, TimePicker, Spin } from 'antd';
+import { Layout, Table, Row, Col, DatePicker, TimePicker, Spin, Button } from 'antd';
 import { Line, Bar } from 'react-chartjs-2';
 import { CSVLink } from 'react-csv';
 
@@ -34,6 +34,7 @@ class App extends React.Component {
 
   state = {
     ready: false,
+    readyBalanceCSV: false,
     tokenMetric: [],
     marketData: [],
     ohlcvData: [],
@@ -198,6 +199,28 @@ class App extends React.Component {
 
     this.data.trade = this.data.trade.filter(e => e.msg === constants.gather.trade);
 
+    //--------------------------------- Table ---------------------------------//
+    // Construct raw data for balance table
+    var balanceData = [];
+    constants.target.markets.forEach(k => {
+      let last = this.data.csv.balance[k][0];
+      let time = new Date(last.time).getTime();
+      let prev24h = new Date(last.time);
+      prev24h = prev24h.setDate(prev24h.getDate() -1);
+      last.volume = this.data.trade
+                    .filter(e => e.exchange === k
+                            && Date.parse(e.createdAt) >= prev24h
+                            && Date.parse(e.createdAt) <= time)
+                    .reduce((acc, e) => acc + e.volume, 0);
+      // Underestimate considering cross trading
+      last.volume /= 2;
+      if (this.data.csv.balance[k].length > 0) balanceData.push(last);
+    });
+
+    this.setState({ balanceData: balanceData });
+  }
+
+  async calcVolume() {
     constants.target.markets.forEach(k => {
       let kTrade = this.data.trade.filter(e => e.exchange === k);
       this.data.csv.balance[k].map(v => {
@@ -208,18 +231,13 @@ class App extends React.Component {
                     .filter(e => Date.parse(e.createdAt) >= prev24h
                             && Date.parse(e.createdAt) <= time)
                     .reduce((acc, e) => acc + e.volume, 0);
+        // Underestimate considering cross trading
+        v.volume /= 2;
         return v;
       });
     });
 
-    //--------------------------------- Table ---------------------------------//
-    // Construct raw data for balance table
-    var balanceData = [];
-    constants.target.markets.forEach(k => {
-      if (this.data.csv.balance[k].length > 0) balanceData.push(this.data.csv.balance[k][0]);
-    });
-
-    this.setState({ balanceData: balanceData });
+    this.setState({ readyBalanceCSV: true });
   }
 
   componentWillMount() {
@@ -432,7 +450,7 @@ class App extends React.Component {
             CSV Download:
           </Col>
           <Col span={20} offset={1}>
-          {
+          {this.state.readyBalanceCSV ?
             Object.keys(this.data.csv.balance).map(quote => {
               return <CSVLink
                 key={quote}
@@ -444,6 +462,8 @@ class App extends React.Component {
                 <CloudDownload /> {quote}
               </CSVLink>
             })
+            :
+            <Button type="primary" onClick={() => this.calcVolume()}>Create</Button>
           }
           </Col>
         </Row>
