@@ -1,5 +1,5 @@
 import React from 'react';
-import { Layout, Table, Row, Col, DatePicker, TimePicker, Spin, Button } from 'antd';
+import { Layout, Table, Row, Col, DatePicker, TimePicker, Spin } from 'antd';
 import { Line, Bar } from 'react-chartjs-2';
 import { CSVLink } from 'react-csv';
 
@@ -222,32 +222,38 @@ class App extends React.Component {
 
   async calcVolume() {
     constants.target.markets.forEach(k => {
-      let kTrade = this.data.trade.filter(e => e.exchange === k);
-      this.data.csv.balance[k].map(v => {
-        let time = new Date(v.time).getTime();
-        let prev24h = new Date(v.time);
-        prev24h = prev24h.setDate(prev24h.getDate() -1);
-        v.volume = kTrade
-                    .filter(e => Date.parse(e.createdAt) >= prev24h
-                            && Date.parse(e.createdAt) <= time)
-                    .reduce((acc, e) => acc + e.volume, 0);
-        // Underestimate considering cross trading
-        v.volume /= 2;
-        return v;
-      });
+      var kTrade = this.data.trade.filter(e => e.exchange === k);
+      var idx = 0;
+      var func = () => {
+        let iter=0;
+        while (idx < this.data.csv.balance[k].length && iter < 20) {
+          let time = new Date(this.data.csv.balance[k][idx].time).getTime();
+          let prev24h = new Date(this.data.csv.balance[k][idx].time);
+          prev24h = prev24h.setDate(prev24h.getDate() -1);
+          this.data.csv.balance[k][idx].volume = kTrade
+                      .filter(e => Date.parse(e.createdAt) >= prev24h
+                              && Date.parse(e.createdAt) <= time)
+                      .reduce((acc, e) => acc + e.volume, 0);
+          // Underestimate considering cross trading
+          this.data.csv.balance[k][idx].volume /= 2;
+          ++iter;
+          ++idx;
+        }
+        if (idx < this.data.csv.balance[k].length) setTimeout(func, 500);
+        else this.setState({ readyBalanceCSV: true });
+      }
+      func();
     });
-
-    this.setState({ readyBalanceCSV: true });
   }
 
   componentWillMount() {
     var asyncLoading = [this.loadReport(), this.loadBalance().then(() => this.loadTrade())];
-    Promise.all(asyncLoading).then(() => this.setState({ ready: true }));
+    Promise.all(asyncLoading).then(() => this.setState({ ready: true }, () => this.calcVolume()));
 
     // Load raw data periodically
     this.interval = setInterval(() => {
       this.setState({ ready: false });
-      Promise.all(asyncLoading).then(() => this.setState({ ready: true }));
+      Promise.all(asyncLoading).then(() => this.setState({ ready: true }, () => this.calcVolume()));
     }, constants.dataUpdatePeriod);
   }
 
@@ -463,7 +469,7 @@ class App extends React.Component {
               </CSVLink>
             })
             :
-            <Button type="primary" onClick={() => this.calcVolume()}>Create</Button>
+            <Spin size='middle' />
           }
           </Col>
         </Row>
@@ -535,7 +541,7 @@ class App extends React.Component {
             :
             <center>
               <h1>Loading...</h1>
-              <Spin size="large" />
+              <Spin size='large' />
             </center>
           }
         </Layout.Content>
