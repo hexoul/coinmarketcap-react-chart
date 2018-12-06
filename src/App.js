@@ -1,6 +1,5 @@
 import React from 'react';
-import ReactLoading from 'react-loading';
-import { Layout, Table, Row, Col, DatePicker, TimePicker } from 'antd';
+import { Layout, Table, Row, Col, DatePicker, TimePicker, Spin } from 'antd';
 import { Line, Bar } from 'react-chartjs-2';
 import { CSVLink } from 'react-csv';
 
@@ -183,7 +182,7 @@ class App extends React.Component {
       if (this.data.csv.balance[k].length > 0) balanceData.push(this.data.csv.balance[k][0]);
     });
 
-    this.setState({ balanceData: balanceData }, () => this.loadTrade());
+    this.setState({ balanceData: balanceData });
   }
 
   async loadTrade() {
@@ -200,13 +199,13 @@ class App extends React.Component {
     this.data.trade = this.data.trade.filter(e => e.msg === constants.gather.trade);
 
     constants.target.markets.forEach(k => {
+      let kTrade = this.data.trade.filter(e => e.exchange === k);
       this.data.csv.balance[k].map(v => {
         let time = new Date(v.time).getTime();
         let prev24h = new Date(v.time);
         prev24h = prev24h.setDate(prev24h.getDate() -1);
-        v.volume = this.data.trade
-                    .filter(e => e.exchange === k
-                            && Date.parse(e.createdAt) >= prev24h
+        v.volume = kTrade
+                    .filter(e => Date.parse(e.createdAt) >= prev24h
                             && Date.parse(e.createdAt) <= time)
                     .reduce((acc, e) => acc + e.volume, 0);
         return v;
@@ -224,7 +223,7 @@ class App extends React.Component {
   }
 
   componentWillMount() {
-    var asyncLoading = [this.loadReport(), this.loadBalance()];
+    var asyncLoading = [this.loadReport(), this.loadBalance().then(() => this.loadTrade())];
     Promise.all(asyncLoading).then(() => this.setState({ ready: true }));
 
     // Load raw data periodically
@@ -516,7 +515,7 @@ class App extends React.Component {
             :
             <center>
               <h1>Loading...</h1>
-              <ReactLoading type='spin' color='#1DA57A' height='20vh' width='20vw' />
+              <Spin size="large" />
             </center>
           }
         </Layout.Content>
