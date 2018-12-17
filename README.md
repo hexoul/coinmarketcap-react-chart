@@ -2,7 +2,7 @@
 Graph rendering from [go-coinmarketcap](https://github.com/hexoul/go-coinmarketcap)'s statistics log.
 In addition, support searchable info table and CSV download.
 
-[![NPM](https://img.shields.io/npm/v/metasdk-react.svg)](https://www.npmjs.com/package/metasdk-react) [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
+[![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
 
 ## Sample
 ![Sample](https://raw.githubusercontent.com/hexoul/coinmarketcap-react-chart/master/sample.png)
