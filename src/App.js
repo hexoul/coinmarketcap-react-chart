@@ -1,23 +1,22 @@
-import React from 'react';
-import { Layout, Table, Row, Col, DatePicker, TimePicker, Spin } from 'antd';
-import { Line, Bar } from 'react-chartjs-2';
-import { CSVLink } from 'react-csv';
+import React from 'react'
+import { Layout, Table, Row, Col, DatePicker, TimePicker, Spin } from 'antd'
+import { Line, Bar } from 'react-chartjs-2'
+import { CSVLink } from 'react-csv'
 
-import { constants, columns, csvHeaders } from './constants';
+import { constants, columns, csvHeaders } from './constants'
 import {
   getURL, getSource,
   lineChartOptions, lineChartWithPriceVolume, lineChartWithCloseVolume,
   barChartOptions, barChartWithVolumes,
-  getMarketDataCSV, getOhlcvCSV, getBalanceCSV } from './util';
+  getMarketDataCSV, getOhlcvCSV, getBalanceCSV } from './util'
 
 // Styles.
-import './App.css';
-import { CloudDownload } from '@material-ui/icons';
+import './App.css'
+import { CloudDownload } from '@material-ui/icons'
 
-const keyMerged = 'Merged';
+const keyMerged = 'Merged'
 
 class App extends React.Component {
-  
   data = {
     origin: [],
     balance: [],
@@ -26,10 +25,10 @@ class App extends React.Component {
     csv: {
       market: {},
       ohlcv: {},
-      balance: {},
+      balance: {}
     },
     searchDate: {},
-    searchTime: {},
+    searchTime: {}
   };
 
   state = {
@@ -38,276 +37,277 @@ class App extends React.Component {
     tokenMetric: [],
     marketData: [],
     ohlcvData: [],
-    balanceData: [],
+    balanceData: []
   };
 
-  async loadReport() {
-    this.data.origin = [];
-    this.data.chart = {};
-    
-    // Get source from remote repo
-    let ret = await getSource('report');
-    ret.split('\n').forEach(line => {
-      if (! line) return;
-      this.data.origin.push(JSON.parse(line));
-    });
-    if (this.data.origin.length === 0) return;
-   
-    // Reverse array to descending order for CSV and table
-    this.data.origin.sort((a, b) => Date.parse(b.time) - Date.parse(a.time));
+  async loadReport () {
+    this.data.origin = []
+    this.data.chart = {}
 
-    //--------------------------------- CSV ---------------------------------//
+    // Get source from remote repo
+    let ret = await getSource('report')
+    ret.split('\n').forEach(line => {
+      if (!line) return
+      this.data.origin.push(JSON.parse(line))
+    })
+    if (this.data.origin.length === 0) return
+
+    // Reverse array to descending order for CSV and table
+    this.data.origin.sort((a, b) => Date.parse(b.time) - Date.parse(a.time))
+
+    // --------------------------------- CSV ---------------------------------//
     // Construct raw data for CSV of market data
-    this.data.csv.market[keyMerged] = [];
+    this.data.csv.market[keyMerged] = []
     this.data.csv.market['CMC'] = this.data.origin
       .filter(e => e.msg === constants.gather.cryptoQuote && e.symbol === constants.target.symbol)
-      .map(e => { e.market = 'CMC'; return getMarketDataCSV(e); });
+      .map(e => { e.market = 'CMC'; return getMarketDataCSV(e) })
     constants.target.markets.forEach(market => {
       this.data.csv.market[market] = this.data.origin
-        .filter(e => e.msg === constants.gather.marketPairs
-                && e.symbol === constants.target.symbol
-                && e.market === market)
-        .map(e => getMarketDataCSV(e));
-      this.data.csv.market[keyMerged] = this.data.csv.market[keyMerged].concat(this.data.csv.market[market]);
-    });
-    this.data.csv.market[keyMerged].sort((a, b) => Date.parse(b.time) - Date.parse(a.time));
-    
+        .filter(e => e.msg === constants.gather.marketPairs &&
+                e.symbol === constants.target.symbol &&
+                e.market === market)
+        .map(e => getMarketDataCSV(e))
+      this.data.csv.market[keyMerged] = this.data.csv.market[keyMerged].concat(this.data.csv.market[market])
+    })
+    this.data.csv.market[keyMerged].sort((a, b) => Date.parse(b.time) - Date.parse(a.time))
+
     // Construct raw data for CSV of ohlcv
-    this.data.csv.ohlcv[keyMerged] = [];
+    this.data.csv.ohlcv[keyMerged] = []
     constants.target.quotes.forEach(quote => {
       this.data.csv.ohlcv[quote] = this.data.origin
-        .filter(e => e.msg === constants.gather.ohlcv
-                && e.symbol === constants.target.symbol
-                && e.convert === quote)
+        .filter(e => e.msg === constants.gather.ohlcv &&
+                e.symbol === constants.target.symbol &&
+                e.convert === quote)
         .map(e => getOhlcvCSV(e, this.data.csv.market))
-        .sort((a, b) => Date.parse(b.date) - Date.parse(a.date));
-      this.data.csv.ohlcv[keyMerged] = this.data.csv.ohlcv[keyMerged].concat(this.data.csv.ohlcv[quote]);
-    });
-    this.data.csv.ohlcv[keyMerged].sort((a, b) => Date.parse(b.date) - Date.parse(a.date));
+        .sort((a, b) => Date.parse(b.date) - Date.parse(a.date))
+      this.data.csv.ohlcv[keyMerged] = this.data.csv.ohlcv[keyMerged].concat(this.data.csv.ohlcv[quote])
+    })
+    this.data.csv.ohlcv[keyMerged].sort((a, b) => Date.parse(b.date) - Date.parse(a.date))
 
-    //--------------------------------- Chart ---------------------------------//
+    // --------------------------------- Chart ---------------------------------//
     // Construct raw data for price & volume chart
-    var labels = {}, prices = {}, volumes = {};
-    constants.target.quotes.forEach(v => { labels[v] = []; prices[v] = []; volumes[v] = [] });
+    var labels = {}; var prices = {}; var volumes = {}
+    constants.target.quotes.forEach(v => { labels[v] = []; prices[v] = []; volumes[v] = [] })
     this.data.origin
       .filter(e => e.msg === constants.gather.cryptoQuote && e.symbol === constants.target.symbol)
       .forEach(e => {
         constants.target.quotes.forEach(v => {
-          labels[v].push(e.time);
-          prices[v].push(e.quote[v].price);
-          volumes[v].push(e.quote[v].volume_24h);
-        });
-      });
+          labels[v].push(e.time)
+          prices[v].push(e.quote[v].price)
+          volumes[v].push(e.quote[v].volume_24h)
+        })
+      })
     constants.target.quotes.forEach(v => {
-      this.data.chart[v] = lineChartWithPriceVolume(labels[v], prices[v], volumes[v]);
-    });
+      this.data.chart[v] = lineChartWithPriceVolume(labels[v], prices[v], volumes[v])
+    })
 
     // Construct raw data for close chart
-    var cLabel = [], cClose = [], cVolume = [];
-    var prevMonday = new Date();
-    prevMonday.setDate(prevMonday.getDate() - 7 - (prevMonday.getDay() + 6) % 7);
-    prevMonday = new Date(prevMonday.getFullYear(), prevMonday.getMonth(), prevMonday.getDate(), 0, 0, 0);
-    prevMonday.setMinutes(prevMonday.getMinutes() + prevMonday.getTimezoneOffset());
-    var thisMonday = new Date();
-    thisMonday.setDate(thisMonday.getDate() - (thisMonday.getDay() + 6) % 7);
-    thisMonday = new Date(thisMonday.getFullYear(), thisMonday.getMonth(), thisMonday.getDate(), 0, 0, 0);
-    thisMonday.setMinutes(thisMonday.getMinutes() + thisMonday.getTimezoneOffset());
+    var cLabel = []; var cClose = []; var cVolume = []
+    var prevMonday = new Date()
+    prevMonday.setDate(prevMonday.getDate() - 7 - (prevMonday.getDay() + 6) % 7)
+    prevMonday = new Date(prevMonday.getFullYear(), prevMonday.getMonth(), prevMonday.getDate(), 0, 0, 0)
+    prevMonday.setMinutes(prevMonday.getMinutes() + prevMonday.getTimezoneOffset())
+    var thisMonday = new Date()
+    thisMonday.setDate(thisMonday.getDate() - (thisMonday.getDay() + 6) % 7)
+    thisMonday = new Date(thisMonday.getFullYear(), thisMonday.getMonth(), thisMonday.getDate(), 0, 0, 0)
+    thisMonday.setMinutes(thisMonday.getMinutes() + thisMonday.getTimezoneOffset())
     this.data.origin
-      .filter(e => e.msg === constants.gather.ohlcv
-              && Date.parse(e.ctime) >= prevMonday.getTime()
-              && Date.parse(e.ctime) < thisMonday.getTime()
-              && e.symbol === constants.target.symbol
-              && e.convert === 'USD')
+      .filter(e => e.msg === constants.gather.ohlcv &&
+              Date.parse(e.ctime) >= prevMonday.getTime() &&
+              Date.parse(e.ctime) < thisMonday.getTime() &&
+              e.symbol === constants.target.symbol &&
+              e.convert === 'USD')
       .forEach(e => {
-        cLabel.push(e.ctime);
-        cClose.push(e.quote.close);
-        cVolume.push(e.quote.volume);
-      });
-    this.data.chart['close'] = lineChartWithCloseVolume(cLabel, cClose, cVolume);
+        cLabel.push(e.ctime)
+        cClose.push(e.quote.close)
+        cVolume.push(e.quote.volume)
+      })
+    this.data.chart['close'] = lineChartWithCloseVolume(cLabel, cClose, cVolume)
 
     // Construct raw data for market volume chart
     var marketVolumes = this.data.csv.ohlcv['USD']
-      .filter(e => Date.parse(e.ctime) >= prevMonday.getTime()
-              && Date.parse(e.ctime) < thisMonday.getTime())
-      .reverse();
-    this.data.chart['market'] = barChartWithVolumes(marketVolumes);
-    
-    //--------------------------------- Table ---------------------------------//
+      .filter(e => Date.parse(e.ctime) >= prevMonday.getTime() &&
+              Date.parse(e.ctime) < thisMonday.getTime())
+      .reverse()
+    this.data.chart['market'] = barChartWithVolumes(marketVolumes)
+
+    // --------------------------------- Table ---------------------------------//
     // Construct raw data for token metric table
-    var tokenMetric = this.data.origin.filter(e => e.msg === constants.gather.tokenMetric && e.symbol === constants.target.symbol);
-    if (tokenMetric.length > 0) tokenMetric = tokenMetric.slice(0, 1);
+    var tokenMetric = this.data.origin.filter(e => e.msg === constants.gather.tokenMetric && e.symbol === constants.target.symbol)
+    if (tokenMetric.length > 0) tokenMetric = tokenMetric.slice(0, 1)
 
     // Construct raw data for market data table
-    var marketData = [];
+    var marketData = []
     Object.keys(this.data.csv.market).filter(k => k !== keyMerged).forEach(k => {
-      if (this.data.csv.market[k].length > 0) marketData.push(this.data.csv.market[k][0]);
-    });
-    
-    // Construct raw data for ohlcv table
-    var ohlcvData = [];
-    Object.keys(this.data.csv.ohlcv).filter(k => k !== keyMerged).forEach(k => {
-      if (this.data.csv.ohlcv[k].length > 0) ohlcvData.push(this.data.csv.ohlcv[k][0]);
-    });
+      if (this.data.csv.market[k].length > 0) marketData.push(this.data.csv.market[k][0])
+    })
 
-    this.setState({ tokenMetric: tokenMetric, marketData: marketData, ohlcvData: ohlcvData });
+    // Construct raw data for ohlcv table
+    var ohlcvData = []
+    Object.keys(this.data.csv.ohlcv).filter(k => k !== keyMerged).forEach(k => {
+      if (this.data.csv.ohlcv[k].length > 0) ohlcvData.push(this.data.csv.ohlcv[k][0])
+    })
+
+    this.setState({ tokenMetric: tokenMetric, marketData: marketData, ohlcvData: ohlcvData })
   }
 
-  async loadBalance() {
-    this.data.balance = [];
+  async loadBalance () {
+    this.data.balance = []
 
     // Get source from remote repo
-    let ret = await getSource('balance');
+    let ret = await getSource('balance')
     ret.split('\n').forEach(line => {
-      if (! line) return;
-      this.data.balance.push(JSON.parse(line));
-    });
-    if (this.data.balance.length === 0) return;
+      if (!line) return
+      this.data.balance.push(JSON.parse(line))
+    })
+    if (this.data.balance.length === 0) return
 
-    //--------------------------------- CSV ---------------------------------//
+    // --------------------------------- CSV ---------------------------------//
     // Construct raw data for CSV of balance data
-    this.data.csv.balance[keyMerged] = [];
+    this.data.csv.balance[keyMerged] = []
     constants.target.markets.forEach(market => {
       this.data.csv.balance[market] = this.data.balance
-        .filter(e => e.msg === constants.gather.balance
-                && e.exchange === market)
+        .filter(e => e.msg === constants.gather.balance &&
+                e.exchange === market)
         .map(e => getBalanceCSV(e))
-        .sort((a, b) => Date.parse(b.time) - Date.parse(a.time));
-      this.data.csv.balance[keyMerged] = this.data.csv.balance[keyMerged].concat(this.data.csv.balance[market]);
-    });
-    this.data.csv.balance[keyMerged].sort((a, b) => Date.parse(b.time) - Date.parse(a.time));
+        .sort((a, b) => Date.parse(b.time) - Date.parse(a.time))
+      this.data.csv.balance[keyMerged] = this.data.csv.balance[keyMerged].concat(this.data.csv.balance[market])
+    })
+    this.data.csv.balance[keyMerged].sort((a, b) => Date.parse(b.time) - Date.parse(a.time))
 
-    //--------------------------------- Table ---------------------------------//
+    // --------------------------------- Table ---------------------------------//
     // Construct raw data for balance table
-    var balanceData = [];
+    var balanceData = []
     constants.target.markets.forEach(k => {
-      if (this.data.csv.balance[k].length > 0) balanceData.push(this.data.csv.balance[k][0]);
-    });
+      if (this.data.csv.balance[k].length > 0) balanceData.push(this.data.csv.balance[k][0])
+    })
 
-    this.setState({ balanceData: balanceData });
+    this.setState({ balanceData: balanceData })
   }
 
-  async loadTrade() {
-    this.data.trade = [];
+  async loadTrade () {
+    this.data.trade = []
 
     // Get source from remote repo
-    let ret = await getSource('trade');
+    let ret = await getSource('trade')
     ret.split('\n').forEach(line => {
-      if (! line) return;
-      this.data.trade.push(JSON.parse(line));
-    });
-    if (this.data.trade.length === 0) return;
+      if (!line) return
+      this.data.trade.push(JSON.parse(line))
+    })
+    if (this.data.trade.length === 0) return
 
-    this.data.trade = this.data.trade.filter(e => e.msg === constants.gather.trade);
+    this.data.trade = this.data.trade.filter(e => e.msg === constants.gather.trade)
 
-    //--------------------------------- Table ---------------------------------//
+    // --------------------------------- Table ---------------------------------//
     // Construct raw data for balance table
-    var balanceData = [];
+    var balanceData = []
     constants.target.markets.forEach(k => {
-      let last = this.data.csv.balance[k][0];
-      let time = new Date(last.time).getTime();
-      let prev24h = new Date(last.time);
-      prev24h = prev24h.setDate(prev24h.getDate() -1);
+      let last = this.data.csv.balance[k][0]
+      let time = new Date(last.time).getTime()
+      let prev24h = new Date(last.time)
+      prev24h = prev24h.setDate(prev24h.getDate() - 1)
       last.volume = this.data.trade
-                    .filter(e => e.exchange === k
-                            && Date.parse(e.createdAt) >= prev24h
-                            && Date.parse(e.createdAt) <= time)
-                    .reduce((acc, e) => acc + e.volume, 0);
+        .filter(e => e.exchange === k &&
+                            Date.parse(e.createdAt) >= prev24h &&
+                            Date.parse(e.createdAt) <= time)
+        .reduce((acc, e) => acc + e.volume, 0)
       // Underestimate considering cross trading
-      last.volume /= 2;
-      if (this.data.csv.balance[k].length > 0) balanceData.push(last);
-    });
+      last.volume /= 2
+      if (this.data.csv.balance[k].length > 0) balanceData.push(last)
+    })
 
-    this.setState({ balanceData: balanceData });
+    this.setState({ balanceData: balanceData })
   }
 
-  async calcVolume() {
+  async calcVolume () {
     constants.target.markets.forEach(k => {
-      var kTrade = this.data.trade.filter(e => e.exchange === k);
-      var idx = 0;
+      var kTrade = this.data.trade.filter(e => e.exchange === k)
+      var idx = 0
       var func = () => {
-        let iter=0;
+        let iter = 0
         while (idx < this.data.csv.balance[k].length && iter < 20) {
-          let time = new Date(this.data.csv.balance[k][idx].time).getTime();
-          let prev24h = new Date(this.data.csv.balance[k][idx].time);
-          prev24h = prev24h.setDate(prev24h.getDate() -1);
+          let time = new Date(this.data.csv.balance[k][idx].time).getTime()
+          let prev24h = new Date(this.data.csv.balance[k][idx].time)
+          prev24h = prev24h.setDate(prev24h.getDate() - 1)
           this.data.csv.balance[k][idx].volume = kTrade
-                      .filter(e => Date.parse(e.createdAt) >= prev24h
-                              && Date.parse(e.createdAt) <= time)
-                      .reduce((acc, e) => acc + e.volume, 0);
+            .filter(e => Date.parse(e.createdAt) >= prev24h &&
+                              Date.parse(e.createdAt) <= time)
+            .reduce((acc, e) => acc + e.volume, 0)
           // Underestimate considering cross trading
-          this.data.csv.balance[k][idx].volume /= 2;
-          ++iter;
-          ++idx;
+          this.data.csv.balance[k][idx].volume /= 2
+          ++iter
+          ++idx
         }
-        if (idx < this.data.csv.balance[k].length) setTimeout(func, 500);
-        else this.setState({ readyBalanceCSV: true });
+        if (idx < this.data.csv.balance[k].length) setTimeout(func, 500)
+        else this.setState({ readyBalanceCSV: true })
       }
-      func();
-    });
+      func()
+    })
   }
 
-  componentWillMount() {
-    var asyncLoading = [this.loadReport(), this.loadBalance().then(() => this.loadTrade())];
-    Promise.all(asyncLoading).then(() => this.setState({ ready: true }, () => this.calcVolume()));
+  componentWillMount () {
+    var asyncLoading = [this.loadReport(), this.loadBalance().then(() => this.loadTrade())]
+    Promise.all(asyncLoading).then(() => this.setState({ ready: true }, () => this.calcVolume()))
 
     // Load raw data periodically
-    this.interval = setInterval(() => {
-      this.setState({ ready: false });
-      Promise.all(asyncLoading).then(() => this.setState({ ready: true }, () => this.calcVolume()));
-    }, constants.dataUpdatePeriod);
+
+    // this.interval = setInterval(() => {
+    //   this.setState({ ready: false });
+    //   Promise.all(asyncLoading).then(() => this.setState({ ready: true }, () => this.calcVolume()));
+    // }, constants.dataUpdatePeriod);
   }
 
   onSearchByTime = (target, isDate, dateStr) => {
     // Set date and time to search
-    if (isDate) this.data.searchDate[target] = dateStr;
-    else this.data.searchTime[target] = dateStr;
+    if (isDate) this.data.searchDate[target] = dateStr
+    else this.data.searchTime[target] = dateStr
 
     if (target === constants.key.ohlcvData && this.data.searchDate[target]);
-    else if (! this.data.searchDate[target] || ! this.data.searchTime[target]) return;
+    else if (!this.data.searchDate[target] || !this.data.searchTime[target]) return
 
     // Search by given time
-    let searchTime = Date.parse(this.data.searchDate[target] + ' ' + this.data.searchTime[target]);
+    let searchTime = Date.parse(this.data.searchDate[target] + ' ' + this.data.searchTime[target])
     switch (target) {
       // Filter and pick last one that is closest data point
       case constants.key.tokenMetric:
-        var tokenMetric = this.data.origin.filter(e => e.msg === constants.gather.tokenMetric && Date.parse(e.time) <= searchTime);
-        if (tokenMetric.length > 0) tokenMetric = [tokenMetric[0]];
-        this.setState({ tokenMetric: tokenMetric });
-        break;
+        var tokenMetric = this.data.origin.filter(e => e.msg === constants.gather.tokenMetric && Date.parse(e.time) <= searchTime)
+        if (tokenMetric.length > 0) tokenMetric = [tokenMetric[0]]
+        this.setState({ tokenMetric: tokenMetric })
+        break
       case constants.key.marketData:
         // Market data is composed of both CMC and market
-        var marketData = [];
+        var marketData = []
         Object.keys(this.data.csv.market).forEach(k => {
-          if (k === keyMerged) return;
-          var found = this.data.csv.market[k].filter(v => Date.parse(v.time) <= searchTime);
-          if (found.length > 0) marketData.push(found[0]);
-        });
-        this.setState({ marketData: marketData });
-        break;
+          if (k === keyMerged) return
+          var found = this.data.csv.market[k].filter(v => Date.parse(v.time) <= searchTime)
+          if (found.length > 0) marketData.push(found[0])
+        })
+        this.setState({ marketData: marketData })
+        break
       case constants.key.ohlcvData:
         searchTime = Date.parse(this.data.searchDate[target])
-        var ohlcvData = [];
+        var ohlcvData = []
         Object.keys(this.data.csv.ohlcv).forEach(k => {
-          if (k === keyMerged) return;
-          var found = this.data.csv.ohlcv[k].filter(v => Date.parse(v.date) <= searchTime);
-          if (found.length > 0) ohlcvData.push(found[0]);
-        });
-        this.setState({ ohlcvData: ohlcvData });
-        break;
+          if (k === keyMerged) return
+          var found = this.data.csv.ohlcv[k].filter(v => Date.parse(v.date) <= searchTime)
+          if (found.length > 0) ohlcvData.push(found[0])
+        })
+        this.setState({ ohlcvData: ohlcvData })
+        break
       case constants.key.balanceData:
-        var balanceData = [];
+        var balanceData = []
         Object.keys(this.data.csv.balance).forEach(k => {
-          if (k === keyMerged) return;
-          var found = this.data.csv.balance[k].filter(v => Date.parse(v.time) <= searchTime);
-          if (found.length > 0) balanceData.push(found[0]);
-        });
-        this.setState({ balanceData: balanceData });
-        break;
-      default: break;
+          if (k === keyMerged) return
+          var found = this.data.csv.balance[k].filter(v => Date.parse(v.time) <= searchTime)
+          if (found.length > 0) balanceData.push(found[0])
+        })
+        this.setState({ balanceData: balanceData })
+        break
+      default: break
     }
   }
 
-  getTokenMetricRender() {
+  getTokenMetricRender () {
     return <div>
       {this.state.ready &&
       <div>
@@ -348,7 +348,7 @@ class App extends React.Component {
     </div>
   }
 
-  getMarketDataRender() {
+  getMarketDataRender () {
     return <div>
       {this.state.ready &&
       <div>
@@ -365,19 +365,19 @@ class App extends React.Component {
             CSV Download:
           </Col>
           <Col span={20} offset={1}>
-          {
-            Object.keys(this.data.csv.market).map(market => {
-              return <CSVLink
-                key={market}
-                filename={'market-data-' + market + '.csv'}
-                headers={csvHeaders.marketData}
-                data={this.data.csv.market[market]}
-                className='csv'
-              >
-                <CloudDownload /> {market}
-              </CSVLink>
-            })
-          }
+            {
+              Object.keys(this.data.csv.market).map(market => {
+                return <CSVLink
+                  key={market}
+                  filename={'market-data-' + market + '.csv'}
+                  headers={csvHeaders.marketData}
+                  data={this.data.csv.market[market]}
+                  className='csv'
+                >
+                  <CloudDownload /> {market}
+                </CSVLink>
+              })
+            }
           </Col>
         </Row>
         <br />
@@ -394,7 +394,7 @@ class App extends React.Component {
     </div>
   }
 
-  getOhlcvRender() {
+  getOhlcvRender () {
     return <div>
       {this.state.ready &&
       <div>
@@ -410,19 +410,19 @@ class App extends React.Component {
             CSV Download:
           </Col>
           <Col span={20} offset={1}>
-          {
-            Object.keys(this.data.csv.ohlcv).map(quote => {
-              return <CSVLink
-                key={quote}
-                filename={'ohlcv-' + quote + '.csv'}
-                headers={csvHeaders.ohlcvData}
-                data={this.data.csv.ohlcv[quote]}
-                className='csv'
-              >
-                <CloudDownload /> {quote}
-              </CSVLink>
-            })
-          }
+            {
+              Object.keys(this.data.csv.ohlcv).map(quote => {
+                return <CSVLink
+                  key={quote}
+                  filename={'ohlcv-' + quote + '.csv'}
+                  headers={csvHeaders.ohlcvData}
+                  data={this.data.csv.ohlcv[quote]}
+                  className='csv'
+                >
+                  <CloudDownload /> {quote}
+                </CSVLink>
+              })
+            }
           </Col>
         </Row>
         <br />
@@ -439,7 +439,7 @@ class App extends React.Component {
     </div>
   }
 
-  getBalanceRender() {
+  getBalanceRender () {
     return <div>
       {this.state.ready &&
       <div>
@@ -456,21 +456,20 @@ class App extends React.Component {
             CSV Download:
           </Col>
           <Col span={20} offset={1}>
-          {this.state.readyBalanceCSV ?
-            Object.keys(this.data.csv.balance).map(quote => {
-              return <CSVLink
-                key={quote}
-                filename={'balance-' + quote + '.csv'}
-                headers={csvHeaders.balanceData}
-                data={this.data.csv.balance[quote]}
-                className='csv'
-              >
-                <CloudDownload /> {quote}
-              </CSVLink>
-            })
-            :
-            <Spin size='middle' />
-          }
+            {this.state.readyBalanceCSV
+              ? Object.keys(this.data.csv.balance).map(quote => {
+                return <CSVLink
+                  key={quote}
+                  filename={'balance-' + quote + '.csv'}
+                  headers={csvHeaders.balanceData}
+                  data={this.data.csv.balance[quote]}
+                  className='csv'
+                >
+                  <CloudDownload /> {quote}
+                </CSVLink>
+              })
+              : <Spin size='middle' />
+            }
           </Col>
         </Row>
         <br />
@@ -487,7 +486,7 @@ class App extends React.Component {
     </div>
   }
 
-  getChartRender() {
+  getChartRender () {
     return <div>
       <h3>Chart</h3>
       {this.state.ready &&
@@ -519,15 +518,15 @@ class App extends React.Component {
     </div>
   }
 
-  render() {
+  render () {
     return (
       <Layout className='layout'>
         <Layout.Header>
           Header
         </Layout.Header>
         <Layout.Content style={{ padding: '5vh 5vw 0vh 5vw', backgroundColor: '#fff', minHeight: '70vh' }}>
-          {this.state.ready ?
-            <div>
+          {this.state.ready
+            ? <div>
               {this.getTokenMetricRender()}
               <br />
               {this.getMarketDataRender()}
@@ -538,8 +537,7 @@ class App extends React.Component {
               <br />
               {this.getChartRender()}
             </div>
-            :
-            <center>
+            : <center>
               <h1>Loading...</h1>
               <Spin size='large' />
             </center>
@@ -550,8 +548,8 @@ class App extends React.Component {
           <center>coinmarketcap-react-chart ©2018 Created by hexoul</center>
         </Layout.Footer>
       </Layout>
-    );
+    )
   }
 }
 
-export default App;
+export default App
