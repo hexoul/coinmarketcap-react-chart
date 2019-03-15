@@ -130,7 +130,7 @@ class App extends React.Component {
               Date.parse(e.ctime) < thisMonday.getTime())
       .reverse()
     this.data.chart['market'] = barChartWithVolumes(marketVolumes)
-
+    
     // --------------------------------- Table ---------------------------------//
     // Construct raw data for token metric table
     var tokenMetric = this.data.origin.filter(e => e.msg === constants.gather.tokenMetric && e.symbol === constants.target.symbol)

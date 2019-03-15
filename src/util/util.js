@@ -175,9 +175,10 @@ const barChartWithVolumes = (volumes) => {
   }
 }
 
+const replaceAll = (str, searchStr, replaceStr) => str.split(searchStr).join(replaceStr)
 const fmtInt = v => v ? v.toLocaleString('en') : '0'
 const fmtFloat = v => v ? parseFloat(Number(v).toFixed(8)).toString().replace(/(\d)(?=(\d{3})+\.)/g, '$1,') : 0
-const toFloat = v => v ? parseFloat(v.replace(',', '')) : 0
+const toFloat = v => v ? parseFloat(replaceAll(v, ',', '')) : 0
 
 const getMarketDataCSV = e => {
   return {
