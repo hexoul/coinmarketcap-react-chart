@@ -202,6 +202,7 @@ class App extends React.Component {
     // Construct raw data for balance table
     var balanceData = []
     constants.target.markets.forEach(k => {
+      if (this.data.csv.balance[k].length === 0) return
       let last = this.data.csv.balance[k][0]
       let time = new Date(last.time).getTime()
       let prev24h = new Date(last.time)
@@ -428,7 +429,7 @@ class App extends React.Component {
         <br />
         <Table
           size='small'
-          style={{ minWidth: '1500px' }}
+          style={{ minWidth: '1700px' }}
           pagination={false}
           rowKey={record => record.unit}
           columns={columns.Ohlcv}
@@ -468,7 +469,7 @@ class App extends React.Component {
                   <CloudDownload /> {quote}
                 </CSVLink>
               })
-              : <Spin size='middle' />
+              : <Spin size='default' />
             }
           </Col>
         </Row>

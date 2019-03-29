@@ -14,7 +14,7 @@ constants.sourceFile = {
 constants.target = {
   symbol: 'META',
   quotes: ['USD', 'BTC', 'ETH'],
-  markets: ['coinsuper', 'kucoin', 'abcc']
+  markets: ['bittrex', 'upbit', 'kucoin', 'abcc', 'coinsuper']
 }
 
 // About keys

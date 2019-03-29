@@ -5,7 +5,7 @@
   "dependencies": {
     "@material-ui/core": "^3.5.1",
     "@material-ui/icons": "^3.0.1",
-    "antd": "^3.10.1",
+    "antd": "3.15.2",
     "babel-plugin-import": "^1.9.1",
     "chart.js": "^2.7.3",
     "node-fetch": "^2.3.0",
@@ -15,7 +15,7 @@
     "react-chartjs-2": "^2.7.4",
     "react-csv": "^1.0.18",
     "react-dom": "^16.5.2",
-    "react-scripts": "^2.1.1"
+    "react-scripts": "2.1.1"
   },
   "scripts": {
     "start": "PORT=3003 react-app-rewired start",

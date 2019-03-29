@@ -110,9 +110,15 @@ columns.Ohlcv = [
     width: '10%'
   },
   {
-    title: 'Coinsuper',
-    dataIndex: 'coinsuperVolume',
-    key: 'coinsuperVolume',
+    title: 'Bittrex',
+    dataIndex: 'bittrexVolume',
+    key: 'bittrexVolume',
+    width: '10%'
+  },
+  {
+    title: 'Upbit',
+    dataIndex: 'upbitVolume',
+    key: 'upbitVolume',
     width: '10%'
   },
   {
@@ -128,6 +134,12 @@ columns.Ohlcv = [
     width: '10%'
   },
   {
+    title: 'Coinsuper',
+    dataIndex: 'coinsuperVolume',
+    key: 'coinsuperVolume',
+    width: '10%'
+  },
+  {
     title: 'Cap',
     dataIndex: 'marketCap',
     key: 'marketCap',
@@ -136,12 +148,6 @@ columns.Ohlcv = [
 ]
 
 columns.Balance = [
-  // {
-  //   title: 'Date',
-  //   dataIndex: 'time',
-  //   key: 'time',
-  //   width: '10%',
-  // },
   {
     title: 'Exchange',
     dataIndex: 'exchange',
@@ -149,19 +155,19 @@ columns.Balance = [
     width: '5%'
   },
   {
-    title: 'Balance(META)',
+    title: 'META',
     dataIndex: 'meta',
     key: 'meta',
     width: '15%'
   },
   {
-    title: 'Balance(ETH)',
+    title: 'ETH',
     dataIndex: 'eth',
     key: 'eth',
     width: '15%'
   },
   {
-    title: 'Balance(BTC)',
+    title: 'BTC',
     dataIndex: 'btc',
     key: 'btc',
     width: '15%'
