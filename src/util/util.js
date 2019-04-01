@@ -153,13 +153,31 @@ const barChartWithVolumes = (volumes) => {
     datasets: [
       {
         label: 'others',
-        backgroundColor: window.chartColors.green,
-        data: Object.values(volumes).map(e => toFloat(e.volume) - toFloat(e.kucoinVolume) - toFloat(e.coinsuperVolume) - toFloat(e.abccVolume))
+        backgroundColor: window.chartColors.grey,
+        data: Object.values(volumes).map(e => {
+          let remain = toFloat(e.volume)
+            - toFloat(e.upbitVolume)
+            - toFloat(e.bittrexVolume)
+            - toFloat(e.abccVolume)
+            - toFloat(e.kucoinVolume)
+            - toFloat(e.coinsuperVolume)
+          return remain > 0 ? remain : 0
+        })
       },
       {
-        label: 'coinsuper',
-        backgroundColor: window.chartColors.yellow,
-        data: Object.values(volumes).map(e => toFloat(e.coinsuperVolume))
+        label: 'upbit',
+        backgroundColor: window.chartColors.red,
+        data: Object.values(volumes).map(e => toFloat(e.upbitVolume))
+      },
+      {
+        label: 'bittrex',
+        backgroundColor: window.chartColors.green,
+        data: Object.values(volumes).map(e => toFloat(e.bittrexVolume))
+      },
+      {
+        label: 'abcc',
+        backgroundColor: window.chartColors.blue,
+        data: Object.values(volumes).map(e => toFloat(e.abccVolume))
       },
       {
         label: 'kucoin',
@@ -167,9 +185,9 @@ const barChartWithVolumes = (volumes) => {
         data: Object.values(volumes).map(e => toFloat(e.kucoinVolume))
       },
       {
-        label: 'abcc',
-        backgroundColor: window.chartColors.blue,
-        data: Object.values(volumes).map(e => toFloat(e.abccVolume))
+        label: 'coinsuper',
+        backgroundColor: window.chartColors.yellow,
+        data: Object.values(volumes).map(e => toFloat(e.coinsuperVolume))
       }
     ]
   }
