@@ -34,7 +34,7 @@ var csvHeaders = {
     { label: 'Balance(META)', key: 'meta' },
     { label: 'Balance(ETH)', key: 'eth' },
     { label: 'Balance(BTC)', key: 'btc' },
-    { label: 'Volume(ETH)', key: 'volume' }
+    { label: 'Volume(META)', key: 'amount' }
   ]
 }
 

@@ -173,9 +173,9 @@ columns.Balance = [
     width: '15%'
   },
   {
-    title: 'Volume(ETH)',
-    dataIndex: 'volume',
-    key: 'volume',
+    title: 'Volume(META)',
+    dataIndex: 'amount',
+    key: 'amount',
     width: '30%'
   }
 ]

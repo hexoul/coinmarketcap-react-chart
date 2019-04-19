@@ -5,7 +5,7 @@ import { CSVLink } from 'react-csv'
 
 import { constants, columns, csvHeaders } from './constants'
 import {
-  getURL, getSource,
+  getURL, getSource, fmtFloat,
   lineChartOptions, lineChartWithPriceVolume, lineChartWithCloseVolume,
   barChartOptions, barChartWithVolumes,
   getMarketDataCSV, getOhlcvCSV, getBalanceCSV } from './util'
@@ -130,7 +130,7 @@ class App extends React.Component {
               Date.parse(e.ctime) < thisMonday.getTime())
       .reverse()
     this.data.chart['market'] = barChartWithVolumes(marketVolumes)
-    
+
     // --------------------------------- Table ---------------------------------//
     // Construct raw data for token metric table
     var tokenMetric = this.data.origin.filter(e => e.msg === constants.gather.tokenMetric && e.symbol === constants.target.symbol)
@@ -207,13 +207,13 @@ class App extends React.Component {
       let time = new Date(last.time).getTime()
       let prev24h = new Date(last.time)
       prev24h = prev24h.setDate(prev24h.getDate() - 1)
-      last.volume = this.data.trade
+      last.amount = this.data.trade
         .filter(e => e.exchange === k &&
                             Date.parse(e.createdAt) >= prev24h &&
                             Date.parse(e.createdAt) <= time)
-        .reduce((acc, e) => acc + e.volume, 0)
-      // Underestimate considering cross trading
-      last.volume /= 2
+        .reduce((acc, e) => acc + e.amount, 0)
+      // NOTE: DISABLED - Underestimate considering cross trading
+      last.amount = fmtFloat(last.amount)
       if (this.data.csv.balance[k].length > 0) balanceData.push(last)
     })
 
